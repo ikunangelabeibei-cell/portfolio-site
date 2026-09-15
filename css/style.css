@@ -1,7 +1,7 @@
 /* ===== Design tokens (matched to aleksdrobik.com) ===== */
 :root {
-  --accent: hsl(331, 100%, 50%);        /* #ff007b */
-  --accent-soft: hsl(331, 100%, 85%);
+  --accent: #1e3a8a;        /* #1e3a8a */
+  --accent-soft: #c7d2fe;
   --dark: rgb(27, 41, 56);              /* CTA band */
   --black: #000;
   --white: #fff;
@@ -29,7 +29,7 @@ img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
 h1, h2, h3, h4 {
   font-family: var(--font-heading);
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.15;
   margin: 0 0 .6em;
 }
@@ -194,16 +194,16 @@ section { padding-block: clamp(48px, 7vw, 96px); }
   transition: opacity .2s;
 }
 .case:hover .tile { opacity: .88; }
-.tile-1 { background: linear-gradient(135deg, #ff007b, #7b2cbf); }
+.tile-1 { background: linear-gradient(135deg, #1e3a8a, #0f172a); }
 .tile-2 { background: linear-gradient(135deg, #1b2938, #3a7ca5); }
-.tile-3 { background: linear-gradient(135deg, #ff6f91, #ffb347); }
+.tile-3 { background: linear-gradient(135deg, #3b82f6, #93c5fd); }
 .tile-4 { background: linear-gradient(135deg, #2a9d8f, #1b2938); }
-.tile-5 { background: linear-gradient(135deg, #5f0f40, #ff007b); }
+.tile-5 { background: linear-gradient(135deg, #172554, #1e3a8a); }
 .case figcaption p { color: var(--text-muted); margin-top: .5rem; }
 .prose ul { padding-left: 1.2rem; }
 .prose li { margin-bottom: .4rem; }
 .prose h2 { margin-top: 2.5rem; }
-.tile-6 { background: linear-gradient(135deg, #ff007b, #ff8fab); }
+.tile-6 { background: linear-gradient(135deg, #1e3a8a, #60a5fa); }
 
 /* ===== v2: scannable layout ===== */
 .section-head { max-width: 60ch; margin-bottom: clamp(24px, 3vw, 40px); }
@@ -222,7 +222,7 @@ h4 + .chips { margin-top: .4rem; margin-bottom: 1.25rem; }
 
 .stats { padding-block: 0; }
 .stats .wrap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; border-top: 1px solid var(--grey-300); border-bottom: 1px solid var(--grey-300); padding-block: 28px; }
-.stats strong { display: block; font-family: var(--font-heading); font-weight: 500; font-size: 2rem; color: var(--accent); line-height: 1; }
+.stats strong { display: block; font-family: var(--font-heading); font-weight: 700; font-size: 2rem; color: var(--accent); line-height: 1; }
 .stats span { font-size: .85rem; color: var(--text-muted); }
 
 .case-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(24px, 3vw, 40px); }
@@ -324,3 +324,18 @@ h4 + .chips { margin-top: .4rem; margin-bottom: 1.25rem; }
 .cv-logo.mono { font-family: var(--font-heading); font-weight: 600; font-size: 1.1rem; color: #fff; border: 0; letter-spacing: .02em; }
 .mono-pink { background: var(--accent); } .mono-teal { background: #2a9d8f; } .mono-navy { background: var(--dark); }
 .cv-logo.empty { visibility: hidden; }
+
+/* ===== Galleries and live demo ===== */
+.shots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+.shots img { width: 100%; border-radius: 18px; box-shadow: 0 10px 30px rgba(15,23,42,.12); }
+.slides { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.slides img { width: 100%; border: 1px solid var(--grey-300); border-radius: 8px; background: #fff; }
+.slides img:first-child { grid-column: 1 / -1; }
+.gallery-note { font-size: .82rem; color: var(--text-muted); margin-top: .75rem; }
+.demo { background: linear-gradient(135deg,#f6eef5,#e9e7f7); border-radius: 20px; padding: clamp(16px, 3vw, 32px); display: grid; place-items: center; }
+.demo iframe { width: 390px; max-width: 100%; height: 760px; border: 0; border-radius: 36px; box-shadow: 0 24px 60px rgba(43,35,70,.25); background: #fff; }
+.tile-photo.tile-contain { background: linear-gradient(160deg,#f7e4ec,#e6dcf5 60%,#dbe8f5); }
+.tile-photo.tile-contain img { object-fit: contain; padding: 14px 0 0; object-position: bottom; }
+.tile-photo.tile-slide img { object-fit: cover; object-position: top; }
+@media (max-width: 900px) { .shots { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 640px) { .shots { grid-template-columns: repeat(2, 1fr); } .slides { grid-template-columns: 1fr; } .demo iframe { height: 680px; } }
