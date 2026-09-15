@@ -23,5 +23,4 @@ Then open <http://localhost:8000>.
 
 ## To do
 
-- Add a portrait to `assets/portrait.jpg` and `assets/about.jpg` and swap out the placeholder boxes.
-- Replace the LinkedIn placeholder link in the header and footer.
+- Add a portrait at `assets/portrait.jpg` (the home and About pages pick it up automatically).
