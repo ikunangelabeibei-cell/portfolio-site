@@ -388,3 +388,4 @@ body { font-weight: 400; }
   .hero-grid { grid-template-columns: 1fr; }
   .timeline li { grid-template-columns: 150px 1fr; }
 }
+.section-head a { white-space: nowrap; }
