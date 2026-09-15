@@ -7,7 +7,7 @@
 <meta name="description" content="Rebecca Xu designs learning experiences and AI products grounded in psychology research. M.Ed. candidate at Harvard.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600..700&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -22,11 +22,11 @@
   <section class="hero"><div class="wrap">
     <div>
       <h1>Hi, I’m <span class="accent">Rebecca.</span></h1>
-      <p class="lead">I design learning experiences and AI products grounded in how people actually think, feel, and grow.</p>
+      <p class="lead">I design <span class="rotate" data-words="learning experiences|AI conversations|assessments|workshops"><span>learning experiences</span></span> grounded in how people actually think, feel, and grow.</p>
       <ul class="chips"><li>Learning design</li><li>Psychology research</li><li>AI product design</li><li>User research</li></ul>
       <div class="btn-row"><a class="btn" href="about.html">Get to know me</a><a class="btn btn-ghost" href="resume.html">View resume</a></div>
     </div>
-    <div class="hero-media"><img src="assets/portrait.jpg" alt="Portrait of Rebecca Xu"></div>
+    <div class="hero-visual"><div class="hero-media"><img src="assets/portrait.jpg" alt="Portrait of Rebecca Xu"></div><div class="badge-float"><strong>Harvard GSE</strong><span>M.Ed. candidate · 2027</span></div></div>
   </div></section>
 
   <section class="stats"><div class="wrap">
@@ -38,30 +38,31 @@
 
   <section class="cases" id="work"><div class="wrap">
     <div class="section-head"><h2>Selected Work</h2><p>Research and product projects where learning, psychology, and AI meet.</p></div>
+    <div class="filters" role="group" aria-label="Filter projects"><button class="on" data-f="all">All</button><button data-f="research">Research</button><button data-f="ai">AI product</button><button data-f="learning">Learning design</button></div>
     <div class="case-grid">
-    <a class="case" href="project-stga.html">
+    <a class="case" href="project-stga.html" data-cat="research ai">
       <div class="tile tile-photo"><img src="assets/projects/stga.jpg" alt="" loading="lazy"><span>Harvard Medical School</span></div>
-      <h3>AI Companion for Older Adults</h3><p>A conversational AI that helps older adults reflect on and record their life stories.</p><ul class="chips chips-sm"><li>Research</li><li>Dialogue design</li><li>30+ users</li></ul>
+      <h3>AI Companion for Older Adults</h3><p>A conversational AI that helps older adults reflect on and record their life stories.</p><ul class="chips chips-sm"><li>Research</li><li>Dialogue design</li><li>30+ users</li></ul><span class="view">View project →</span>
     </a>
-    <a class="case" href="project-vibi.html">
+    <a class="case" href="project-vibi.html" data-cat="ai">
       <div class="tile tile-photo"><img src="assets/projects/vibi.jpg" alt="" loading="lazy"><span>Mingo Technology</span></div>
-      <h3>Vibi Persona and Prompt Design</h3><p>Made an AI companion’s conversations feel natural to North American users.</p><ul class="chips chips-sm"><li>AI product</li><li>Prompt design</li><li>User testing</li></ul>
+      <h3>Vibi Persona and Prompt Design</h3><p>Made an AI companion’s conversations feel natural to North American users.</p><ul class="chips chips-sm"><li>AI product</li><li>Prompt design</li><li>User testing</li></ul><span class="view">View project →</span>
     </a>
-    <a class="case" href="project-lovebti.html">
+    <a class="case" href="project-lovebti.html" data-cat="ai">
       <div class="tile tile-photo tile-contain"><img src="assets/projects/lovebti/share.png" alt="" loading="lazy"><span>Mingo Technology</span></div>
-      <h3>Love BTI Quiz Prototype</h3><p>A relationship-style quiz, from question design to a working HTML prototype built with Claude.</p><ul class="chips chips-sm"><li>UX design</li><li>Prototyping</li><li>Claude</li></ul>
+      <h3>Love BTI Quiz Prototype</h3><p>A relationship-style quiz, from question design to a working HTML prototype built with Claude.</p><ul class="chips chips-sm"><li>UX design</li><li>Prototyping</li><li>Claude</li></ul><span class="view">View project →</span>
     </a>
-    <a class="case" href="project-guanxin-course.html">
+    <a class="case" href="project-guanxin-course.html" data-cat="learning">
       <div class="tile tile-photo tile-slide"><img src="assets/projects/guanxin/slide-4.png" alt="" loading="lazy"><span>Guanxin</span></div>
-      <h3>Gestalt Psychology Courses</h3><p>Course materials, facilitation, and feedback loops for 100+ adult learners.</p><ul class="chips chips-sm"><li>Learning design</li><li>Facilitation</li><li>100+ learners</li></ul>
+      <h3>Gestalt Psychology Courses</h3><p>Course materials, facilitation, and feedback loops for 100+ adult learners.</p><ul class="chips chips-sm"><li>Learning design</li><li>Facilitation</li><li>100+ learners</li></ul><span class="view">View project →</span>
     </a>
-    <a class="case" href="project-parenting.html">
+    <a class="case" href="project-parenting.html" data-cat="learning ai">
       <div class="tile tile-photo"><img src="assets/projects/parenting.jpg" alt="" loading="lazy"><span>Guanxin</span></div>
-      <h3>AI Parenting-Style Assessment</h3><p>Result levels, feedback content, and report layout for an AI-based assessment.</p><ul class="chips chips-sm"><li>Assessment design</li><li>Content</li></ul>
+      <h3>AI Parenting-Style Assessment</h3><p>Result levels, feedback content, and report layout for an AI-based assessment.</p><ul class="chips chips-sm"><li>Assessment design</li><li>Content</li></ul><span class="view">View project →</span>
     </a>
-    <a class="case" href="project-tsinghua.html">
+    <a class="case" href="project-tsinghua.html" data-cat="research">
       <div class="tile tile-photo"><img src="assets/projects/tsinghua.jpg" alt="" loading="lazy"><span>Tsinghua</span></div>
-      <h3>Generative AI Risk Framework</h3><p>A structured framework of the risks generative AI brings to higher education.</p><ul class="chips chips-sm"><li>Research</li><li>Risk analysis</li><li>Delphi survey</li></ul>
+      <h3>Generative AI Risk Framework</h3><p>A structured framework of the risks generative AI brings to higher education.</p><ul class="chips chips-sm"><li>Research</li><li>Risk analysis</li><li>Delphi survey</li></ul><span class="view">View project →</span>
     </a>
     </div>
   </div></section>
@@ -69,23 +70,79 @@
   <section class="pillars"><div class="wrap">
     <div class="section-head"><h2>How I Work</h2></div>
     <div class="pillar-grid">
-      <div><span class="num">01</span><h3>Start with people</h3><p>Talk to learners and users first. Understand how they think and where they get stuck before building anything.</p></div>
-      <div><span class="num">02</span><h3>Ground it in theory</h3><p>Design from evidence, whether that is Erikson, Gestalt psychology, or the risk literature on generative AI.</p></div>
-      <div><span class="num">03</span><h3>Build and measure</h3><p>Prototype quickly, collect real feedback, and let the data decide the next iteration.</p></div>
+      <div><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5M14.5 18.5c.4-2.2 1.6-3.5 3.3-3.5 1.4 0 2.4.9 2.7 2.5"/></svg></span><h3>Start with people</h3><p>Talk to learners and users first. Understand how they think and where they get stuck before building anything.</p></div>
+      <div><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5c-2-1.6-4.6-2-8-1.5v13c3.4-.5 6 0 8 1.5 2-1.5 4.6-2 8-1.5V5c-3.4-.5-6 0-8 1.5z"/><path d="M12 6.5v13"/></svg></span><h3>Ground it in theory</h3><p>Design from evidence, whether that is Erikson, Gestalt psychology, or the risk literature on generative AI.</p></div>
+      <div><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M6 16v-5M11 16V8M16 16v-3M21 16V5"/><path d="M6 8l5-3 5 3 5-4"/></svg></span><h3>Build and measure</h3><p>Prototype quickly, collect real feedback, and let the data decide the next iteration.</p></div>
     </div>
   </div></section>
 
   <section class="experience"><div class="wrap">
-    <div class="section-head"><h2>Experience</h2><p>Seven roles across research labs, an AI startup, and education. <a class="accent" href="resume.html">Full resume →</a></p></div>
-    <ul class="timeline">
-      <li><span class="tl-date">Jun – Aug 2026</span><span class="tl-role">AI Product Manager</span><span class="tl-org">Mingo Technology (Vibi), Beijing</span></li>
-      <li><span class="tl-date">Apr – Jun 2026</span><span class="tl-role">Learning Experience Designer</span><span class="tl-org">Guanxin Brain-Intelligence Health Technology, Beijing</span></li>
-      <li><span class="tl-date">Aug – Dec 2025</span><span class="tl-role">Research Assistant, AI and Aging</span><span class="tl-org">Harvard Medical School, Social Technology for Global Aging</span></li>
-      <li><span class="tl-date">Sep – Dec 2025</span><span class="tl-role">Research Assistant, Immigration Politics</span><span class="tl-org">Emory University</span></li>
-      <li><span class="tl-date">Aug – Nov 2025</span><span class="tl-role">Research Assistant, Generative AI Risk</span><span class="tl-org">Tsinghua University AI Governance</span></li>
-      <li><span class="tl-date">Aug 2023 – Dec 2025</span><span class="tl-role">Undergraduate Research Assistant, Cognitive Science</span><span class="tl-org">Hamann Lab, Emory University</span></li>
-      <li><span class="tl-date">Jun – Aug 2024</span><span class="tl-role">Teaching Intern</span><span class="tl-org">International School of Nanjing Yuhuatai High School</span></li>
-    </ul>
+    <div class="section-head"><h2>Experience</h2><p>Seven roles across research labs, an AI startup, and education. Tap a role to expand it, or read the <a class="accent" href="resume.html">full resume →</a></p></div>
+    <ol class="xp">
+      <li class="xp-item">
+        <button class="xp-head" aria-expanded="false">
+          <span class="xp-logo"><img src="assets/logos/vibi.jpg" alt=""></span>
+          <span class="xp-main"><span class="xp-role">AI Product Manager</span><span class="xp-org">Mingo Technology (Vibi) · Beijing</span></span>
+          <span class="xp-date">Jun – Aug 2026</span>
+          <span class="xp-chev" aria-hidden="true"></span>
+        </button>
+        <div class="xp-body"><div><ul><li>Product testing for Vibi, an AI emotional companion app for the US market.</li><li>Persona, voice, and prompt design; Love BTI quiz prototype built with Claude.</li></ul><a href="project-vibi.html">See the project →</a></div></div>
+      </li>
+      <li class="xp-item">
+        <button class="xp-head" aria-expanded="false">
+          <span class="xp-logo"><img src="assets/logos/guanxin.jpg" alt=""></span>
+          <span class="xp-main"><span class="xp-role">Learning Experience Designer</span><span class="xp-org">Guanxin Brain-Intelligence Health Technology · Beijing</span></span>
+          <span class="xp-date">Apr – Jun 2026</span>
+          <span class="xp-chev" aria-hidden="true"></span>
+        </button>
+        <div class="xp-body"><div><ul><li>Course materials and facilitation for 100+ adult learners, online and in person.</li><li>Feedback from 60+ participants fed into revisions; content for an AI parenting assessment.</li></ul><a href="project-guanxin-course.html">See the project →</a></div></div>
+      </li>
+      <li class="xp-item">
+        <button class="xp-head" aria-expanded="false">
+          <span class="xp-logo"><img src="assets/logos/harvard.png" alt=""></span>
+          <span class="xp-main"><span class="xp-role">Research Assistant, AI and Aging</span><span class="xp-org">Harvard Medical School · Social Technology for Global Aging · Remote</span></span>
+          <span class="xp-date">Aug – Dec 2025</span>
+          <span class="xp-chev" aria-hidden="true"></span>
+        </button>
+        <div class="xp-body"><div><ul><li>Theory-informed AI dialogue model tested with 30+ older adults.</li><li>Mixed-methods evaluation plan combining well-being measures, qualitative feedback, and sentiment analysis.</li></ul><a href="project-stga.html">See the project →</a></div></div>
+      </li>
+      <li class="xp-item">
+        <button class="xp-head" aria-expanded="false">
+          <span class="xp-logo"><img src="assets/logos/emory.png" alt=""></span>
+          <span class="xp-main"><span class="xp-role">Research Assistant, Immigration Politics</span><span class="xp-org">Emory University · Atlanta</span></span>
+          <span class="xp-date">Sep – Dec 2025</span>
+          <span class="xp-chev" aria-hidden="true"></span>
+        </button>
+        <div class="xp-body"><div><ul><li>Coded legislative votes across state records and built datasets linking demographics to outcomes.</li></ul></div></div>
+      </li>
+      <li class="xp-item">
+        <button class="xp-head" aria-expanded="false">
+          <span class="xp-logo"><img src="assets/logos/tsinghua.png" alt=""></span>
+          <span class="xp-main"><span class="xp-role">Research Assistant, Generative AI Risk</span><span class="xp-org">Tsinghua University AI Governance · Beijing</span></span>
+          <span class="xp-date">Aug – Nov 2025</span>
+          <span class="xp-chev" aria-hidden="true"></span>
+        </button>
+        <div class="xp-body"><div><ul><li>Risk framework with structured indicators and an expert Delphi survey for generative AI in higher education.</li></ul><a href="project-tsinghua.html">See the project →</a></div></div>
+      </li>
+      <li class="xp-item">
+        <button class="xp-head" aria-expanded="false">
+          <span class="xp-logo"><img src="assets/logos/emory.png" alt=""></span>
+          <span class="xp-main"><span class="xp-role">Undergraduate Research Assistant</span><span class="xp-org">Hamann Cognitive Science Lab, Emory University</span></span>
+          <span class="xp-date">Aug 2023 – Dec 2025</span>
+          <span class="xp-chev" aria-hidden="true"></span>
+        </button>
+        <div class="xp-body"><div><ul><li>Data from 100+ participants in emotion-memory studies; automated cleaning and analysis in R.</li><li>Compiled findings into a 20-page report.</li></ul></div></div>
+      </li>
+      <li class="xp-item">
+        <button class="xp-head" aria-expanded="false">
+          <span class="xp-logo"><b>YH</b></span>
+          <span class="xp-main"><span class="xp-role">Teaching Intern</span><span class="xp-org">International School of Nanjing Yuhuatai High School</span></span>
+          <span class="xp-date">Jun – Aug 2024</span>
+          <span class="xp-chev" aria-hidden="true"></span>
+        </button>
+        <div class="xp-body"><div><ul><li>Grade 10 Economics lesson planning and trial teaching; advised 8 students on academic planning.</li></ul></div></div>
+      </li>
+    </ol>
   </div></section>
 
   <section class="cta-band"><div class="wrap">
