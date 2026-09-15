@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Family Assessment prototype — Rebecca Xu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#14213d;--blue:#2f7cf6;--blue-d:#1d5fd1;--sky:#eaf3ff;--sky-2:#d9e9ff;--muted:#5b6b85;--line:rgba(20,33,61,.1);--ok:#16a34a;--warn:#f59e0b;--bad:#ef4444;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px 12px;font-family:Nunito,system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,#eef4ff,#f7f9ff 50%,#e8f1ff)}
+button{font:inherit;border:0;cursor:pointer;color:inherit;background:none}
+.phone{width:390px;max-width:100%;height:844px;border-radius:44px;position:relative;overflow:hidden;background:linear-gradient(180deg,#3d8bff 0,#7fb4ff 22%,#eaf3ff 38%,#f5f9ff 100%);box-shadow:0 26px 70px rgba(29,95,209,.22),0 0 0 10px rgba(255,255,255,.75)}
+.status{height:42px;padding:16px 24px 0;display:flex;justify-content:space-between;font-size:13px;font-weight:800;color:#fff;position:relative;z-index:2}
+.tabs{position:relative;z-index:3;width:calc(100% - 24px);margin:10px auto 0;padding:5px;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;border-radius:99px;background:rgba(255,255,255,.35);backdrop-filter:blur(8px)}
+.tab{height:31px;border-radius:99px;font-size:10px;font-weight:800;color:#fff}
+.tab.active{background:#fff;color:var(--blue-d)}
+.screen{position:absolute;inset:89px 0 0;padding:0 16px 16px;display:none;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+.screen::-webkit-scrollbar{display:none}
+.screen.active{display:block;animation:rise .3s ease-out}
+@keyframes rise{from{opacity:.2;transform:translateY(10px)}to{opacity:1;transform:none}}
+.brand{display:flex;align-items:center;gap:8px;color:#fff;font-size:12px;font-weight:800;margin:10px 4px 6px}
+.brand i{width:22px;height:22px;border-radius:7px;background:#fff;display:grid;place-items:center;color:var(--blue-d);font-style:normal;font-size:12px}
+h1,h2,h3{margin:0;line-height:1.1}
+.hero-t{color:#fff;font-size:26px;font-weight:900;margin:2px 4px 0;text-shadow:0 2px 10px rgba(29,95,209,.25)}
+.hero-s{color:#e8f1ff;font-size:13px;margin:8px 4px 14px;line-height:1.45}
+.card{background:var(--card);border-radius:22px;padding:18px;box-shadow:0 14px 34px rgba(29,95,209,.10);margin-bottom:14px}
+.card h3{font-size:15px;font-weight:900;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.card h3 .dot{width:8px;height:8px;border-radius:50%;background:var(--blue)}
+.dims{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dim{background:var(--sky);border-radius:14px;padding:10px 12px;font-size:12px;font-weight:800;color:var(--blue-d);display:flex;gap:8px;align-items:center}
+.dim span{font-size:16px}
+.steps{display:grid;gap:10px}
+.step{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:start}
+.step b{width:34px;height:34px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:13px}
+.step p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.45}
+.step p strong{display:block;color:var(--ink);font-size:13.5px;margin-bottom:2px}
+.primary{display:block;width:100%;min-height:52px;border-radius:99px;background:linear-gradient(90deg,var(--blue),var(--blue-d));color:#fff;font-weight:900;font-size:15px;box-shadow:0 12px 26px rgba(29,95,209,.28);margin-top:6px}
+.secondary{min-height:44px;padding:0 16px;border-radius:99px;background:#fff;border:1.5px solid var(--line);font-weight:800;font-size:13px}
+.meta{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 2px}
+.pill{font-size:11px;font-weight:800;background:var(--sky);color:var(--blue-d);border-radius:99px;padding:6px 10px}
+/* chat */
+.chat{display:grid;gap:10px;padding-bottom:6px}
+.bubble{max-width:86%;padding:12px 14px;border-radius:18px;font-size:13.5px;line-height:1.45;animation:rise .3s ease-out}
+.bubble.ai{background:#fff;border-bottom-left-radius:6px;box-shadow:0 10px 24px rgba(29,95,209,.08)}
+.bubble.me{background:var(--blue);color:#fff;justify-self:end;border-bottom-right-radius:6px}
+.who{display:flex;gap:8px;align-items:center;font-size:11px;font-weight:800;color:#fff;margin:8px 4px 4px}
+.who i{width:26px;height:26px;border-radius:50%;background:#fff;display:grid;place-items:center;color:var(--blue-d);font-style:normal;font-size:13px}
+.opts{display:grid;gap:8px;margin-top:4px}
+.opt{text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;font-size:13px;font-weight:700;line-height:1.35;transition:.15s;box-shadow:0 6px 16px rgba(29,95,209,.06)}
+.opt:hover{border-color:var(--blue)}
+.progress{height:6px;border-radius:99px;background:rgba(255,255,255,.5);margin:6px 4px 10px;overflow:hidden}
+.bar{height:100%;width:0;background:#fff;transition:.3s}
+.typing{display:inline-flex;gap:4px;padding:6px 2px}.typing i{width:6px;height:6px;border-radius:50%;background:#9db7e6;animation:blink 1s infinite}.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.3}40%{opacity:1}}
+/* report */
+.gauge{display:grid;place-items:center;position:relative;margin:4px 0 6px}
+.gauge svg{width:230px;height:130px;overflow:visible}
+.gauge .val{position:absolute;top:58px;text-align:center}
+.gauge .val b{font-size:40px;line-height:1;display:block}
+.gauge .val span{font-size:12px;font-weight:800}
+.lvl{display:inline-block;padding:8px 16px;border-radius:99px;color:#fff;font-weight:900;font-size:13px;margin:4px auto 6px;display:block;width:max-content}
+.note{background:var(--sky);border-radius:14px;padding:12px 14px;font-size:12.5px;line-height:1.5;color:var(--muted)}
+.note b{color:var(--blue-d)}
+.radar{display:grid;place-items:center}
+.radar svg{width:100%;max-width:300px;height:auto}
+.dimcard h3{justify-content:space-between}
+.tag{font-size:10px;font-weight:900;padding:4px 8px;border-radius:8px;color:#fff}
+.t-ok{background:var(--ok)}.t-warn{background:var(--warn)}.t-bad{background:var(--bad)}
+.kv{display:grid;gap:8px}
+.kv div{background:#f6f9ff;border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.45;color:var(--muted)}
+.kv div b{display:block;color:var(--ink);font-size:12.5px;margin-bottom:2px}
+.kv .plus b{color:var(--ok)}.kv .watch b{color:var(--warn)}
+.risks{display:grid;gap:8px}
+.risk{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;font-size:13px;font-weight:800}
+.risk small{display:block;font-weight:600;color:var(--muted);font-size:11.5px;margin-top:2px}
+.fine{font-size:10.5px;color:#8a97ad;margin:6px 4px 0;line-height:1.4}
+/* style */
+.ladder{display:grid;gap:6px;margin:6px 0 12px}
+.rung{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-radius:14px;background:#f6f9ff;font-size:12.5px;font-weight:800;color:var(--muted);border:1.5px solid transparent}
+.rung b{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:12px}
+.rung.on{background:#fff;border-color:var(--blue);color:var(--ink);box-shadow:0 10px 26px rgba(29,95,209,.12)}
+.rung .you{font-size:10px;font-weight:900;color:var(--blue-d);background:var(--sky);border-radius:99px;padding:4px 8px}
+.han{display:grid;grid-template-columns:54px 1fr;gap:12px;align-items:start}
+.han .face{width:54px;height:54px;border-radius:16px;background:var(--sky);display:grid;place-items:center}
+.han .face svg{width:40px;height:40px}
+.han p{margin:0;font-size:13px;line-height:1.5}
+.han p em{display:block;font-style:normal;font-size:11px;font-weight:800;color:var(--muted);margin-top:6px}
+.nn{display:grid;gap:8px;margin-top:10px}
+.nn div{border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.5}
+.nn .now{background:#ecfdf3;border:1.5px solid #bbf7d0}.nn .need{background:#eff6ff;border:1.5px solid #bfdbfe}
+.nn b{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.nn .now b{color:var(--ok)}.nn .need b{color:var(--blue-d)}
+/* plan */
+.plan{display:grid;gap:10px}
+.pstep{background:#f6f9ff;border-radius:16px;padding:12px 14px}
+.pstep h4{margin:0 0 4px;font-size:13.5px}
+.pstep .goal{font-size:12px;color:var(--blue-d);font-weight:800;margin-bottom:6px}
+.pstep ol{margin:0;padding-left:18px;font-size:12.5px;color:var(--muted);line-height:1.45}
+.stars{display:flex;gap:8px;justify-content:center;font-size:26px;margin:6px 0}
+.stars button{color:#d7deea;transition:.15s}.stars button.on{color:#f5b301}
+.cta{position:sticky;bottom:0;margin:10px -16px -16px;padding:12px 16px 18px;background:linear-gradient(180deg,rgba(245,249,255,0),#f5f9ff 40%)}
+.closing{font-size:13.5px;line-height:1.55}
+.closing b{color:var(--blue-d)}
+</style>
+</head>
+<body>
+<main class="phone">
+  <div class="status"><span>9:41</span><span>●●● 5G</span></div>
+  <nav class="tabs">
+    <button class="tab active" data-go="intro">Start</button>
+    <button class="tab" data-go="chat">Check-in</button>
+    <button class="tab" data-go="report">Report</button>
+    <button class="tab" data-go="style">Style</button>
+    <button class="tab" data-go="plan">Plan</button>
+  </nav>
+
+  <!-- START -->
+  <section class="screen active" id="intro">
+    <div class="brand"><i>◎</i>Guanxin Lab · AI Psychological Assessment</div>
+    <h1 class="hero-t">Adolescent Mental Health &amp; Family Environment Assessment</h1>
+    <p class="hero-s">Has your child become irritable, glued to a screen, or unwilling to go to school? It may be a signal, not a phase.</p>
+    <div class="card">
+      <h3><span class="dot"></span>Four dimensions, one picture</h3>
+      <div class="dims">
+        <div class="dim"><span>🏠</span>Family environment</div>
+        <div class="dim"><span>📱</span>Internet use</div>
+        <div class="dim"><span>💬</span>Parent–child relationship</div>
+        <div class="dim"><span>📚</span>School motivation</div>
+      </div>
+      <div class="meta"><span class="pill">12 international models</span><span class="pill">36 indicators</span><span class="pill">10 minutes</span></div>
+    </div>
+    <div class="card">
+      <h3><span class="dot"></span>How it works</h3>
+      <div class="steps">
+        <div class="step"><b>1</b><p><strong>Talk with Xiao Nian, the AI</strong>A ten-minute chat. No cross-examining, no judging, nothing saved to a record.</p></div>
+        <div class="step"><b>2</b><p><strong>Get the report instantly</strong>A risk score, a four-axis radar, and a plain-language read on each dimension.</p></div>
+        <div class="step"><b>3</b><p><strong>Read it with a person</strong>A dedicated advisor walks you through the results and a plan you can actually follow.</p></div>
+      </div>
+      <button class="primary" data-go="chat">Start the check-in</button>
+    </div>
+    <p class="fine">Prototype rebuilt in English for portfolio purposes. Original product in Chinese by Guanxin Lab.</p>
+  </section>
+
+  <!-- CHAT -->
+  <section class="screen" id="chat">
+    <div class="who"><i>✦</i>Xiao Nian · AI check-in <span id="stepLabel" style="margin-left:auto;opacity:.9">1 / 5</span></div>
+    <div class="progress"><div class="bar" id="bar"></div></div>
+    <div class="chat" id="chatLog"></div>
+    <div class="opts" id="opts"></div>
+  </section>
+
+  <!-- REPORT -->
+  <section class="screen" id="report">
+    <div class="brand"><i>◎</i>Guanxin Lab · AI Psychological Assessment</div>
+    <h1 class="hero-t" style="font-size:22px">Comprehensive Assessment Report</h1>
+    <p class="hero-s">Generated from your check-in. For reference, not a clinical diagnosis.</p>
+    <div class="card">
+      <h3><span class="dot"></span>Overall score</h3>
+      <div class="gauge">
+        <svg viewBox="0 0 230 130" aria-hidden="true">
+          <path d="M20 120 A95 95 0 0 1 210 120" fill="none" stroke="#e6eefb" stroke-width="14" stroke-linecap="round"/>
+          <path id="arc" d="M20 120 A95 95 0 0 1 210 120" fill="none" stroke="#2f7cf6" stroke-width="14" stroke-linecap="round" stroke-dasharray="298" stroke-dashoffset="298"/>
+        </svg>
+        <div class="val"><b id="score">0</b><span id="scoreCap">out of 100</span></div>
+      </div>
+      <span class="lvl" id="lvl">—</span>
+      <div class="note" id="headline"></div>
+    </div>
+    <div class="card">
+      <h3><span class="dot"></span>Four-dimension radar</h3>
+      <div class="radar"><svg id="radar" viewBox="0 0 300 230" aria-label="Radar chart of four dimensions"></svg></div>
+    </div>
+    <div id="dimcards"></div>
+    <div class="card">
+      <h3><span class="dot"></span>Risk overview</h3>
+      <div class="risks" id="risks"></div>
+      <p class="fine">Levels are estimated against the Guanxin adolescent behavior database (N = 10,000).</p>
+    </div>
+    <button class="primary" data-go="style">See your parenting style</button>
+    <div style="height:10px"></div>
+  </section>
+
+  <!-- STYLE -->
+  <section class="screen" id="style">
+    <div class="brand"><i>◎</i>Parenting-style module · with Teacher Han</div>
+    <h1 class="hero-t" style="font-size:22px">Where you are on the ladder</h1>
+    <p class="hero-s">Five levels describe the pattern of how a family responds under stress. None of them is a verdict.</p>
+    <div class="card">
+      <div class="ladder" id="ladder"></div>
+      <div class="han">
+        <div class="face"><svg viewBox="0 0 40 40" fill="none" stroke="#1d5fd1" stroke-width="2" stroke-linecap="round"><circle cx="20" cy="15" r="8"/><path d="M9 35c1.5-6 5.5-9 11-9s9.5 3 11 9"/><path d="M13 14h5M22 14h5"/><path d="M16 19c2 2 6 2 8 0"/></svg></div>
+        <p id="hanSays"></p>
+      </div>
+      <div class="nn">
+        <div class="now"><b>Where you are now</b><span id="nowTxt"></span></div>
+        <div class="need"><b>What you need</b><span id="needTxt"></span></div>
+      </div>
+    </div>
+    <button class="primary" data-go="plan">Get the action plan</button>
+    <div style="height:10px"></div>
+  </section>
+
+  <!-- PLAN -->
+  <section class="screen" id="plan">
+    <div class="brand"><i>◎</i>Recommendations &amp; action plan</div>
+    <h1 class="hero-t" style="font-size:22px">Relationship first, behavior second</h1>
+    <p class="hero-s">Emotions before academics. Small, repeatable moves beat one big talk.</p>
+    <div class="card">
+      <h3><span class="dot"></span>Core judgment</h3>
+      <p class="closing" id="core"></p>
+    </div>
+    <div class="card">
+      <h3><span class="dot"></span>Three steps to start this week</h3>
+      <div class="plan" id="planSteps"></div>
+    </div>
+    <div class="card">
+      <h3><span class="dot"></span>Your strengths</h3>
+      <div class="kv" id="strengths"></div>
+    </div>
+    <div class="card">
+      <h3><span class="dot"></span>A closing word</h3>
+      <p class="closing">You are not fighting this alone. After several emotional “earthquakes,” a child builds a careful, lonely fortress. Every bit of your effort and worry has been seen. <b>Repairing the relationship is the only road to solving the problem</b>, and the first step is trading the urgency to “fix them” for the harder work of understanding them.</p>
+    </div>
+    <div class="card">
+      <h3><span class="dot"></span>Rate this report</h3>
+      <div class="stars" id="stars"><button>★</button><button>★</button><button>★</button><button>★</button><button>★</button></div>
+      <p class="fine" style="text-align:center" id="thanks">Tap a star to rate.</p>
+    </div>
+    <p class="fine">1. This report organizes your child’s situation across family environment, individual behavior, parent–child interaction, and school. 2. Results are for reference only and are not a basis for clinical diagnosis. 3. If anything is unclear, consult a qualified professional. Content generated by AI.</p>
+    <div class="cta"><button class="primary">Talk to an advisor · free report walkthrough</button></div>
+  </section>
+</main>
+
+<script>
+const Q=[
+ {dim:0,q:"Hi, I’m Xiao Nian. Let’s start with home. In the past year, how would you describe the emotional climate at home?",
+  a:["Warm and steady. We talk about feelings.","Mostly fine, with occasional tension.","Frequent arguments or long silences.","Often shouting, cold wars, or someone storming out."]},
+ {dim:1,q:"Thank you. How does screen time look on a typical day?",
+  a:["Under two hours, and it ends without a fight.","Two to four hours. Reminders usually work.","Most free time is online. Taking the phone away causes big reactions.","Day and night are reversed. Online friends are the only friends."]},
+ {dim:2,q:"When something goes wrong, how do conversations with your child usually go?",
+  a:["We can talk it through, even if it gets messy.","Short answers, but the door stays open.","Silence, avoidance, or an outburst. Then nothing.","We barely talk. I learn things from other people."]},
+ {dim:3,q:"How does your child feel about school right now?",
+  a:["Engaged, with normal ups and downs.","Losing interest. Grades are slipping.","Dreads school. Frequent absences.","Has stopped attending."]},
+ {dim:4,q:"Last one. When your child breaks a rule, what usually happens?",
+  a:["We name the feeling first, then agree on a consequence together.","I explain the rule and hold the line, sometimes with a raised voice.","It depends on my mood. Strict one day, letting it go the next.","Lectures, yelling, taking things away. It escalates.","Hitting, humiliating, or days of cold silence. I regret it later."]},
+];
+const DIMS=[
+ {name:"Family environment",icon:"🏠",tag:"The safe base",
+  low:{plus:"Emotional support and guidance are both present. Home works as a base to return to, not just a place to eat and sleep.",watch:"Keep naming feelings out loud so that steadiness stays visible to your child."},
+  high:{plus:"You are looking honestly at what is hard. That honesty is the raw material for change.",watch:"Discipline is inconsistent between adults, and emotional exchange has mostly stopped. The home provides food and shelter but not yet safety."}},
+ {name:"Internet use",icon:"📱",tag:"Boundaries with the virtual world",
+  low:{plus:"Screen time has limits your child accepts. Online life is a part of life, not a replacement for it.",watch:"Keep the agreements explicit so they survive stressful weeks."},
+  high:{plus:"You have noticed the pattern early rather than dismissing it.",watch:"Sleep and meals are organized around being online, and reducing it triggers strong reactions. Online use is usually a result, not a cause. It is often how a child escapes pressure or fills an empty space."}},
+ {name:"Parent–child relationship",icon:"💬",tag:"The connecting line",
+  low:{plus:"Conversations survive conflict. Your child still lets you in.",watch:"Protect the low-stakes moments, since they are what make the high-stakes talks possible."},
+  high:{plus:"You hold deep love and a refusal to give up. That is the core engine of repair.",watch:"Time together has not become emotional connection. Hard topics end in shutdown, and your child reads your words as polite or evasive. The relationship is the channel. When it is open, guidance can reach them."}},
+ {name:"School motivation",icon:"📚",tag:"The engine of growth",
+  low:{plus:"Internal motivation is intact. School still feels like something they can do.",watch:"Watch for pressure that turns curiosity into fear of failing."},
+  high:{plus:"You value education and are willing to invest in it.",watch:"Internal drive has run dry. Avoiding school comes from repeated setbacks and fear of failing again. Support needs to start from your child’s emotional state, not from the coursework."}},
+];
+const LEVELS=[
+ {n:1,name:"High support",color:"#16a34a",han:"You hold the line and stay warm at the same time. Your child knows the door is open.",now:"Boundaries are clear and you stay emotionally available. Conflict happens, but repair follows.",need:"Keep it going, and protect your own rest so the warmth is sustainable.",motto:"Manage yourself first."},
+ {n:2,name:"Basically stable",color:"#65a30d",han:"Rules are clear and mostly consistent. Sometimes the volume gets louder than the message.",now:"Your child can predict you most of the time. Emotion occasionally overrides the point you meant to make.",need:"Slow down the first ten seconds. Say what you see before you correct.",motto:"Watch your words."},
+ {n:3,name:"Inconsistent / wavering",color:"#f59e0b",han:"Your child cannot predict which version of you will show up, so they test the rules or quietly withdraw.",now:"Strict one day, permissive the next. The rules move with your mood, so they stop meaning anything.",need:"Pick two rules that never move and let the rest be flexible. Predictability is the gift here.",motto:"Observe quietly first."},
+ {n:4,name:"High conflict / high control",color:"#ea580c",han:"Control is buying compliance, not connection. Each win costs a little trust.",now:"Lectures and confiscations escalate quickly. Your child complies or explodes, and neither brings you closer.",need:"Trade one lecture a day for one question. Practice a minute of breath observation before you respond.",motto:"Go practice breath observation."},
+ {n:5,name:"High risk / harm",color:"#dc2626",han:"The relationship is in survival mode. Your child is protecting themselves from you.",now:"Physical punishment, humiliation, or long cold silences, followed by regret. Safety, not obedience, is the missing piece.",need:"Stop the harm first. Talk to a professional this week. Repair begins with safety, not with an apology speech.",motto:"Not easy. Start anyway."},
+];
+const state={i:0,sev:[0,0,0,0],lvl:2};
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const go=id=>{$$('.screen').forEach(s=>s.classList.toggle('active',s.id===id));$$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.go===id));if(id==='chat'&&!$('#chatLog').children.length)ask();if(['report','style','plan'].includes(id))render();};
+$$('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
+
+function ask(){
+  const item=Q[state.i]; if(!item){return;}
+  $('#stepLabel').textContent=`${state.i+1} / ${Q.length}`; $('#bar').style.width=`${(state.i)/Q.length*100}%`;
+  const log=$('#chatLog'); const t=document.createElement('div'); t.className='bubble ai'; t.innerHTML='<span class="typing"><i></i><i></i><i></i></span>'; log.appendChild(t); log.parentElement.scrollTop=1e6;
+  setTimeout(()=>{t.textContent=item.q; $('#opts').innerHTML=item.a.map((o,j)=>`<button class="opt" data-j="${j}">${o}</button>`).join(''); $$('.opt').forEach(b=>b.onclick=()=>pick(+b.dataset.j)); log.parentElement.scrollTop=1e6;},550);
+}
+function pick(j){
+  const item=Q[state.i]; const log=$('#chatLog');
+  const me=document.createElement('div'); me.className='bubble me'; me.textContent=item.a[j]; log.appendChild(me); $('#opts').innerHTML='';
+  if(item.dim===4) state.lvl=j; else state.sev[item.dim]=j;
+  state.i++;
+  if(state.i<Q.length){ setTimeout(ask,350); }
+  else { $('#bar').style.width='100%'; const done=document.createElement('div'); done.className='bubble ai'; done.textContent='Thank you for being honest. I have what I need. Your report is ready.'; setTimeout(()=>{log.appendChild(done); $('#opts').innerHTML='<button class="primary" data-go="report">Open my report</button>'; $('.primary',$('#opts')).onclick=()=>go('report'); log.parentElement.scrollTop=1e6;},500); }
+}
+function render(){
+  const dimScore=state.sev.map(s=>25-s*8);
+  const total=dimScore.reduce((a,b)=>a+b,0);
+  const level= total>=75?['Low risk','#16a34a','Overall signals look healthy. Keep the routines that are working.']: total>=50?['Moderate risk','#f59e0b','Some dimensions need attention before they harden into patterns.']: total>=25?['Elevated risk','#ea580c','Several areas show serious strain. Structured support is recommended.']:['High risk','#dc2626','This dimension shows severe problems and needs professional intervention.'];
+  const scoreEl=$('#score'); let cur=0; const target=total; const tick=()=>{cur+=Math.max(1,Math.round((target-cur)/6)); if(cur>target)cur=target; scoreEl.textContent=cur; if(cur<target)requestAnimationFrame(tick);}; scoreEl.textContent='0'; requestAnimationFrame(tick);
+  $('#arc').style.stroke=level[1]; requestAnimationFrame(()=>{$('#arc').style.transition='stroke-dashoffset 1s ease'; $('#arc').style.strokeDashoffset=298-298*total/100;});
+  const l=$('#lvl'); l.textContent=level[0]; l.style.background=level[1];
+  const worst=state.sev.indexOf(Math.max(...state.sev));
+  $('#headline').innerHTML=`${level[2]} Please pay particular attention to <b>${DIMS[worst].name.toLowerCase()}</b>: in the check-in, this is where the strain came through most clearly.`;
+  // radar
+  const cx=150,cy=118,r=76,pts=[[0,-1],[1,0],[0,1],[-1,0]];
+  const P=(k,i)=>`${cx+pts[i][0]*r*k},${cy+pts[i][1]*r*k}`;
+  let svg='';[.25,.5,.75,1].forEach(k=>svg+=`<polygon points="${pts.map((_,i)=>P(k,i)).join(' ')}" fill="${k===1?'#f2f6ff':'none'}" stroke="#dbe5f5" stroke-width="1"/>`);
+  pts.forEach((_,i)=>svg+=`<line x1="${cx}" y1="${cy}" x2="${P(1,i).split(',')[0]}" y2="${P(1,i).split(',')[1]}" stroke="#dbe5f5"/>`);
+  svg+=`<polygon points="${dimScore.map((s,i)=>P(s/25,i)).join(' ')}" fill="rgba(47,124,246,.25)" stroke="#2f7cf6" stroke-width="2.5" stroke-linejoin="round"/>`;
+  dimScore.forEach((s,i)=>{const [x,y]=P(s/25,i).split(',');svg+=`<circle cx="${x}" cy="${y}" r="4" fill="#2f7cf6"/>`});
+  const labels=["Family","Internet","Relationship","School"], lp=[[cx,cy-r-12],[cx+r+8,cy+4],[cx,cy+r+18],[cx-r-8,cy+4]], anch=["middle","start","middle","end"];
+  labels.forEach((t,i)=>svg+=`<text x="${lp[i][0]}" y="${lp[i][1]}" text-anchor="${anch[i]}" font-size="11" font-weight="800" fill="#5b6b85">${t} ${dimScore[i]}</text>`);
+  $('#radar').innerHTML=svg;
+  // dimension cards
+  $('#dimcards').innerHTML=DIMS.map((d,i)=>{const hi=state.sev[i]>=2, c=hi?d.high:d.low; const tag=state.sev[i]>=3?'t-bad':state.sev[i]===2?'t-warn':'t-ok'; const tt=state.sev[i]>=3?'High':state.sev[i]===2?'Medium':'Low';
+    return `<div class="card dimcard"><h3><span>${d.icon} ${d.name}</span><span class="tag ${tag}">${tt}</span></h3><p class="fine" style="margin:-4px 0 10px">${d.tag}</p><div class="kv"><div class="plus"><b>Your strengths</b>${c.plus}</div><div class="watch"><b>Points to watch</b>${c.watch}</div></div></div>`;}).join('');
+  // risks
+  const R=[["Psychological distress",Math.max(state.sev[0],state.sev[2]),"Mood, anxiety, and withdrawal signals."],["Behavioral problems",Math.max(state.sev[1],state.sev[2]),"Isolation, disrupted routines, escalation under pressure."],["Academic performance",state.sev[3],"Knowledge gaps and delayed socialization if time out of school extends."],["Future adaptation",Math.round((state.sev[1]+state.sev[3])/2),"Independent living skills and social adaptation."]];
+  $('#risks').innerHTML=R.map(([n,s,d])=>`<div class="risk"><span class="tag ${s>=3?'t-bad':s===2?'t-warn':'t-ok'}">${s>=3?'High':s===2?'Med':'Low'}</span><div>${n}<small>${d}</small></div></div>`).join('');
+  // style ladder
+  const L=LEVELS[state.lvl];
+  $('#ladder').innerHTML=LEVELS.map((x,i)=>`<div class="rung ${i===state.lvl?'on':''}"><b style="background:${x.color}">L${x.n}</b><span>${x.name}</span>${i===state.lvl?'<span class="you">You</span>':''}</div>`).join('');
+  $('#hanSays').innerHTML=`“${L.han}”<em>Teacher Han · ${L.motto}</em>`;
+  $('#nowTxt').textContent=L.now; $('#needTxt').textContent=L.need;
+  // plan
+  const coreMap=["Home does not yet feel safe enough for anything else to work. Safety comes before rules, and rules before results.","Online life is the symptom, not the disease. Cutting it off by force will fail; building a real-world reason to log off will not.","The channel between you is blocked. Until it opens, no advice, however good, can reach your child.","School pressure has become fear. Motivation returns after emotional recovery, not before it."];
+  $('#core').innerHTML=`${coreMap[worst]} The order to follow is <b>relationship first, behavior second; emotions first, academics second.</b>`;
+  const PL=[
+   {t:"Repair safety and build a safe island",g:"Stop the harm from continuing and establish a minimum sense of safety.",s:["Say it plainly: “I know you are tired and hurting. To me, your happiness matters more than school.”","Pause the pressure. Take the hardest topic off the agenda for two weeks.","Build a daily anchor: one non-judgmental, low-pressure moment together, every day."]},
+   {t:"Loosen the emotions",g:"Help your child notice and allow feelings so long-held tension can release.",s:["Invite, don’t demand. Start with a light film and shared laughter.","Name emotions in passing, through a character in a show or a game.","Seek a professional evaluation if sleep or mood stay disrupted."]},
+   {t:"Rebuild the connection",g:"Break the polite distance and rebuild real emotional contact.",s:["Enter their world. Ask them to teach you their favorite game or show.","Use observe, feel, need, request: “I noticed you went quiet. I’m guessing that felt like pressure. Want to talk about something else instead?”","Agree on two rules that never move and hold them warmly."]},
+  ];
+  $('#planSteps').innerHTML=PL.map((p,i)=>`<div class="pstep"><h4>Step ${i+1}: ${p.t}</h4><div class="goal">Goal: ${p.g}</div><ol>${p.s.map(x=>`<li>${x}</li>`).join('')}</ol></div>`).join('');
+  $('#strengths').innerHTML=[["Inside the family","You have insight, reflection, and the willingness to act. Your worry comes from love, and love is the engine of change."],["Outside the family","Guanxin’s counseling team can offer three one-on-one sessions and connect you with a peer support group of families in the same situation."],["Effort already made","You completed this check-in honestly. That is the first, hardest step."]].map(([b,t])=>`<div class="plus"><b>${b}</b>${t}</div>`).join('');
+}
+$$('#stars button').forEach((b,i,all)=>b.onclick=()=>{all.forEach((x,j)=>x.classList.toggle('on',j<=i)); $('#thanks').textContent=['We hear you. Thank you.','Thank you for the feedback.','Thank you. We will keep improving.','Glad it helped. Thank you.','Thank you. We are glad this landed.'][i];});
+const want=new URLSearchParams(location.search).get('screen');
+if(want){ if(want!=='intro'&&want!=='chat'){ state.sev=[2,3,2,1]; state.lvl=3; state.i=Q.length; } go(want); if(want==='chat'){ pick(1); } }
+</script>
+</body>
+</html>

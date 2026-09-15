@@ -529,3 +529,5 @@ p { font-size: 1.02rem; }
 .eyebrow, .small, .credit, .gallery-note, .toc p, .cv-org, .badge-float, .stats span, .project-facts span, .meta-card, .xp-org, .form label, .form label span, .site-footer p, .filters, .chips { font-family: var(--font-body); }
 .small { font-size: .9rem; }
 .section-head p { font-size: 1.05rem; }
+.tile-photo.tile-blue { background: linear-gradient(160deg,#dbeafe,#eaf3ff 60%,#f5f9ff); }
+.project-nav a img { object-position: top; }
