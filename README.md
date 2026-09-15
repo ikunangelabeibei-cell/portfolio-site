@@ -1,14 +1,14 @@
 # Portfolio Site
 
-A clean, static rebuild of the layout and design of [aleksdrobik.com](https://www.aleksdrobik.com/) (a Squarespace site), intended as the starting template for Rebecca Xu's personal portfolio.
+Rebecca Xu's personal portfolio. Static HTML/CSS, with a layout adapted from [aleksdrobik.com](https://www.aleksdrobik.com/). Hosted on GitHub Pages.
 
 ## Pages
 
 | File | Purpose |
 | --- | --- |
-| `index.html` | Portfolio home: hero, case study grid, testimonial carousel, CTA band |
-| `about.html` | Long-form about page with photo gallery |
-| `resources.html` | Embedded video resources |
+| `index.html` | Home: hero, selected work grid, experience carousel, CTA band |
+| `about.html` | Long-form about page |
+| `resume.html` | Education, experience, and skills |
 | `contact.html` | Two-column contact page with form |
 
 Shared styling lives in `css/style.css`; the carousel and mobile nav are in `js/main.js`.
@@ -21,6 +21,7 @@ python3 -m http.server 8000
 
 Then open <http://localhost:8000>.
 
-## Status
+## To do
 
-Images and copy are currently placeholders pulled from the original site so the clone can be compared side by side. Next step: swap in Rebecca's own content, photos, and brand colors.
+- Add a portrait to `assets/portrait.jpg` and `assets/about.jpg` and swap out the placeholder boxes.
+- Replace the LinkedIn placeholder link in the header and footer.

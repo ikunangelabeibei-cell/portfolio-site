@@ -181,3 +181,25 @@ section { padding-block: clamp(48px, 7vw, 96px); }
   .nav.open { display: flex; }
   .nav-toggle { display: block; }
 }
+
+/* ===== Placeholders and project tiles (Rebecca's content) ===== */
+.placeholder {
+  display: grid; place-items: center; text-align: center;
+  color: var(--text-muted); font-size: .9rem; border: 1px dashed var(--grey-300);
+}
+.placeholder small { font-size: .75rem; opacity: .7; }
+.tile {
+  aspect-ratio: 4 / 3; display: flex; align-items: flex-end; padding: 20px;
+  color: var(--white); font-size: .8rem; font-weight: 500; letter-spacing: .02em;
+  transition: opacity .2s;
+}
+.case:hover .tile { opacity: .88; }
+.tile-1 { background: linear-gradient(135deg, #ff007b, #7b2cbf); }
+.tile-2 { background: linear-gradient(135deg, #1b2938, #3a7ca5); }
+.tile-3 { background: linear-gradient(135deg, #ff6f91, #ffb347); }
+.tile-4 { background: linear-gradient(135deg, #2a9d8f, #1b2938); }
+.tile-5 { background: linear-gradient(135deg, #5f0f40, #ff007b); }
+.case figcaption p { color: var(--text-muted); margin-top: .5rem; }
+.prose ul { padding-left: 1.2rem; }
+.prose li { margin-bottom: .4rem; }
+.prose h2 { margin-top: 2.5rem; }
