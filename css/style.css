@@ -336,6 +336,6 @@ h4 + .chips { margin-top: .4rem; margin-bottom: 1.25rem; }
 .demo iframe { width: 390px; max-width: 100%; height: 760px; border: 0; border-radius: 36px; box-shadow: 0 24px 60px rgba(43,35,70,.25); background: #fff; }
 .tile-photo.tile-contain { background: linear-gradient(160deg,#f7e4ec,#e6dcf5 60%,#dbe8f5); }
 .tile-photo.tile-contain img { object-fit: contain; padding: 14px 0 0; object-position: bottom; }
-.tile-photo.tile-slide img { object-fit: cover; object-position: top; }
+.tile-photo.tile-slide { background: #fff; border: 1px solid var(--grey-300); } .tile-photo.tile-slide img { object-fit: contain; }
 @media (max-width: 900px) { .shots { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 640px) { .shots { grid-template-columns: repeat(2, 1fr); } .slides { grid-template-columns: 1fr; } .demo iframe { height: 680px; } }
