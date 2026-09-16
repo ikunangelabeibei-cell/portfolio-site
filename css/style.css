@@ -531,3 +531,15 @@ p { font-size: 1.02rem; }
 .section-head p { font-size: 1.05rem; }
 .tile-photo.tile-blue { background: linear-gradient(160deg,#dbeafe,#eaf3ff 60%,#f5f9ff); }
 .project-nav a img { object-position: top; }
+
+/* ===== Why learning design ===== */
+.why { background: var(--tint); }
+.why .wrap { max-width: 860px; }
+.why .eyebrow { margin-bottom: 1.2rem; }
+.pullquote { font-family: var(--font-display); font-weight: 600; font-size: clamp(2rem, 4.2vw, 3.2rem); line-height: 1.1; letter-spacing: -.015em; margin: 0 0 .6rem; color: var(--accent); }
+.why .cite { font-family: var(--font-body); font-size: .9rem; color: var(--text-muted); margin: 0 0 2.2rem; }
+.why-body p { font-size: 1.1rem; line-height: 1.8; margin: 0 0 1.15rem; }
+.why-body p:last-child { margin-bottom: 0; }
+.refs { border-top: 1px solid var(--grey-300); margin-top: 2.2rem; padding-top: 1.2rem; }
+.refs p { font-family: var(--font-body); font-size: .85rem; color: var(--text-muted); margin: 0 0 .45rem; padding-left: 1.6em; text-indent: -1.6em; line-height: 1.55; }
+.refs p:first-child { padding-left: 0; text-indent: 0; color: var(--black); }
