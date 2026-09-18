@@ -22,7 +22,7 @@ const onScroll = () => {
 addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
 // Scroll reveal
-const revealEls = $$('.hero .wrap > *, .hero-grid > *, .section-head, .filters, .case, .pillar-grid > div, .stats .wrap > div, .project-facts .wrap > div, .xp-item, .story-row, .cv-item, .cv-h2, .block, .beyond-grid img, .facts, .form, .project-nav a, .workbook, .shots img, .slides img, .why .wrap > *');
+const revealEls = $$('.hero .wrap > *, .hero-grid > *, .section-head, .filters, .case, .pillar-grid > div, .stats .wrap > div, .project-facts .wrap > div, .xp-item, .story-row, .cv-item, .cv-h2, .block, .beyond-grid img, .facts, .form, .project-nav a, .workbook, .shots img, .slides img, .why .wrap > *, .refl-hero .wrap > *, .post > *, .teaser-card');
 revealEls.forEach(el => {
   el.classList.add('reveal');
   const i = [...el.parentElement.children].indexOf(el);
