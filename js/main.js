@@ -22,7 +22,7 @@ const onScroll = () => {
 addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
 // Scroll reveal
-const revealEls = $$('.hero .wrap > *, .hero-grid > *, .section-head, .filters, .case, .pillar-grid > div, .stats .wrap > div, .project-facts .wrap > div, .xp-item, .story-row, .cv-item, .cv-h2, .block, .beyond-grid img, .facts, .form, .project-nav a, .workbook, .shots img, .slides img, .why .wrap > *, .refl-hero .wrap > *, .post > *, .teaser-card');
+const revealEls = $$('.hero .wrap > *, .hero-grid > *, .section-head, .now-card, .case, .pillar-grid > div, .stats .wrap > div, .project-facts .wrap > div, .xp-item, .story-row, .cv-item, .cv-h2, .block, .beyond-grid img, .facts, .contact-card, .project-nav a, .workbook, .shots img, .slides img, .why .wrap > *, .refl-hero .wrap > *, .post > *, .teaser-card');
 revealEls.forEach(el => {
   el.classList.add('reveal');
   const i = [...el.parentElement.children].indexOf(el);
@@ -50,26 +50,14 @@ $$('.stats strong, .project-facts strong').forEach(el => {
   o.observe(el);
 });
 
-// Rotating word in hero
-$$('.rotate').forEach(r => {
+// Rotating word in hero (holds still for people who prefer reduced motion)
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (!reduceMotion) $$('.rotate').forEach(r => {
   const words = r.dataset.words.split('|'); let i = 0; const span = r.firstElementChild;
   setInterval(() => {
     span.classList.add('out');
     setTimeout(() => { i = (i + 1) % words.length; span.textContent = words[i]; span.classList.remove('out'); }, 320);
   }, 2600);
-});
-
-// Work filters
-const filters = $('.filters');
-filters?.addEventListener('click', e => {
-  const b = e.target.closest('button'); if (!b) return;
-  $$('button', filters).forEach(x => x.classList.toggle('on', x === b));
-  const f = b.dataset.f;
-  $$('.case').forEach(c => {
-    const show = f === 'all' || (c.dataset.cat || '').split(' ').includes(f);
-    c.classList.toggle('hide', !show);
-    if (show) c.classList.add('in');
-  });
 });
 
 // Experience accordion

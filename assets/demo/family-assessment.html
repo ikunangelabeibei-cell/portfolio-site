@@ -104,6 +104,21 @@ h1,h2,h3{margin:0;line-height:1.1}
 .closing{font-size:13.5px;line-height:1.55}
 .closing b{color:var(--blue-d)}
 </style>
+<style>
+  /* Embedded in the portfolio: fill the frame exactly so it never scrolls */
+  html.embedded,html.embedded body{height:100%;overflow:hidden}
+  html.embedded body{padding:0;min-height:0;display:block;background:none}
+  html.embedded .wrap{display:block}
+  html.embedded .phone{position:absolute;left:0;top:0;max-width:none;margin:0;border-radius:0;box-shadow:none;transform-origin:0 0}
+</style>
+<script>
+  if (window.self !== window.top) {
+    document.documentElement.classList.add('embedded');
+    const fit = () => { const p = document.querySelector('.phone'); if (p) p.style.transform = 'scale(' + Math.min(innerWidth / 390, innerHeight / 844) + ')'; };
+    addEventListener('DOMContentLoaded', fit);
+    addEventListener('resize', fit);
+  }
+</script>
 </head>
 <body>
 <main class="phone">
