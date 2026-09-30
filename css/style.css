@@ -592,3 +592,19 @@ p { font-size: 1.02rem; }
 .contact-card .text-link { display: inline-block; margin-top: 1.2rem; }
 .contact .wrap > * { min-width: 0; }
 .facts li a { overflow-wrap: anywhere; }
+
+/* ===== Full-screen hero: fit the first screen on laptops and monitors ===== */
+@media (min-width: 901px) {
+  .hero { padding-block: clamp(32px, 6vh, 72px); }
+  .hero .wrap { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); }
+  /* Size the portrait by window height as well as column width, so it never runs past the fold */
+  .hero-visual { width: 100%; justify-self: center; max-width: max(340px, calc((100vh - 230px) * .8)); max-width: max(340px, calc((100svh - 230px) * .8)); }
+}
+@media (min-width: 1200px) {
+  .hero h1 { font-size: clamp(3.4rem, 4.4vw, 4.6rem); }
+  .hero .lead { font-size: clamp(1.35rem, 1.5vw, 1.6rem); max-width: 40ch; }
+}
+@media (min-width: 901px) {
+  .statement { padding-block: clamp(32px, 6vh, 72px); }
+  .statement .hero-media { width: 100%; justify-self: center; border-radius: 22px; box-shadow: 0 30px 60px rgba(15, 23, 42, .12); max-width: max(320px, calc((100vh - 230px) * .8)); max-width: max(320px, calc((100svh - 230px) * .8)); }
+}
