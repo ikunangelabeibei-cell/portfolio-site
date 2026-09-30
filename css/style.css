@@ -608,3 +608,33 @@ p { font-size: 1.02rem; }
   .statement { padding-block: clamp(32px, 6vh, 72px); }
   .statement .hero-media { width: 100%; justify-self: center; border-radius: 22px; box-shadow: 0 30px 60px rgba(15, 23, 42, .12); max-width: max(320px, calc((100vh - 230px) * .8)); max-width: max(320px, calc((100svh - 230px) * .8)); }
 }
+
+/* ===== Phones ===== */
+.project-nav a { min-width: 0; }
+@media (max-width: 640px) {
+  .project-nav .wrap { grid-template-columns: 1fr; gap: 12px; }
+  .project-nav a, .project-nav a.next { grid-template-columns: 72px minmax(0, 1fr); }
+  .project-nav a img { width: 72px; height: 56px; }
+  .project-nav a.next img { order: 0; }
+  .project-nav a.next div { text-align: left; }
+}
+/* Diagrams: stacked version on phones instead of a sideways-scrolling one */
+.diagram-sm { display: none; min-width: 0; max-width: 420px; margin-inline: auto; }
+@media (max-width: 640px) {
+  .diagram-lg { display: none; }
+  .diagram-sm { display: block; }
+  .diagram-wrap { overflow-x: visible; }
+  /* Home: keep the stats card and hero badge inside the screen */
+  .stats .wrap { width: auto; margin-inline: var(--gutter); padding: 22px 20px; }
+  .badge-float { left: 12px; bottom: 16px; }
+}
+
+/* ===== Reflections as a blog ===== */
+.post-cover { margin: 0 0 1.8rem; }
+.post-cover img { width: 100%; aspect-ratio: 2 / 1; object-fit: cover; border-radius: 18px; box-shadow: 0 18px 44px rgba(165, 28, 48, .10); }
+.teaser-card.has-img { max-width: 980px; display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 28px; align-items: center; padding: 18px; }
+.teaser-card.has-img img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 14px; }
+.teaser-card.has-img > div { padding: 8px 10px 8px 0; }
+.teaser-card.has-img h3 { margin-top: .7rem; }
+@media (max-width: 640px) { .teaser-card.has-img { grid-template-columns: 1fr; gap: 16px; } .teaser-card.has-img > div { padding: 0 6px 8px; } }
+@media (min-width: 1001px) { .refl-hero .wrap { max-width: 1200px; padding-left: calc(var(--gutter) + 288px); } }  /* line up with the post column */
