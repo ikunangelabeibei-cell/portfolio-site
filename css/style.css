@@ -638,3 +638,5 @@ p { font-size: 1.02rem; }
 .teaser-card.has-img h3 { margin-top: .7rem; }
 @media (max-width: 640px) { .teaser-card.has-img { grid-template-columns: 1fr; gap: 16px; } .teaser-card.has-img > div { padding: 0 6px 8px; } }
 @media (min-width: 1001px) { .refl-hero .wrap { max-width: 1200px; padding-left: calc(var(--gutter) + 288px); } }  /* line up with the post column */
+.teaser-more { margin: 1rem 0 0; font-family: var(--font-body); font-size: .9rem; }
+.post + .post { margin-top: clamp(48px, 6vw, 80px); padding-top: clamp(40px, 5vw, 64px); border-top: 1px solid var(--grey-300); }
