@@ -10,6 +10,8 @@ const SURVEY_SCENES = [
   { stage: 'infant', id: 'bed', label: 'Baby · 0–1 year', hint: 'Crying at bedtime' },
   { stage: 'toddler', id: 'milk', label: 'Early childhood · 1–3 years', hint: 'A kitchen accident' },
 ];
+// Where the survey menu links for the full simulator; a hosted copy can override it with <html data-full="...">.
+const FULL_URL = document.documentElement.dataset.full || 'baby-sim-interactive.html';
 const shuffle = () => {
   const result = STYLES.map((_, index) => index);
   for (let i = result.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [result[i], result[j]] = [result[j], result[i]]; }
@@ -199,7 +201,8 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
       <div class="identity-controls"><div><label for="characterName">Child’s name</label><input id="characterName" maxlength="24" value="${escapeHTML(name)}" autocomplete="off"></div></div>
       <div class="scene-list">${SURVEY_SCENES.map(s => { const v = getVariant(SCENARIOS.find(x => x.id === s.id), s.stage, name); return `<button data-scenario="${s.id}" data-stage="${s.stage}"><span><b>${s.label}: ${v.name}</b><small>${s.hint} · ${v.setting} · ${LENSES[getLens(s.stage)].title}</small></span>${finished.has(s.id) ? '<span class="scene-done">✓ Done</span>' : '<span class="scene-arrow" aria-hidden="true">›</span>'}</button>`; }).join('')}</div>
       ${finished.size === SURVEY_SCENES.length ? '<p class="survey-return"><b>You’ve tried both moments.</b> Return to the survey tab to continue.</p>' : ''}
-      <p class="scene-help">You can try a different response at any point. Nothing you choose here is saved or sent anywhere.</p>`;
+      <p class="scene-help">You can try a different response at any point. Nothing you choose here is saved or sent anywhere.</p>
+      <a class="full-link" href="${FULL_URL}"><span><b>Explore the full simulator</b><small>${SCENARIOS.reduce((n, s) => n + Object.keys(s.variants).length, 0)} scenes across ${Object.keys(STAGES).length} age stages, from infancy to adolescence</small></span><span class="scene-arrow" aria-hidden="true">›</span></a>`;
     else if (G.phase === 'library') panel.innerHTML = `
       <h2>Choose a scene</h2>
       <div class="identity-controls"><div><label for="characterName">Name</label><input id="characterName" maxlength="24" value="${escapeHTML(name)}" autocomplete="off"></div><div><label for="ageStage">Age</label><select id="ageStage">${Object.entries(STAGES).map(([id,s]) => `<option value="${id}" ${id === stage ? 'selected' : ''}>${s.label}</option>`).join('')}</select></div></div>

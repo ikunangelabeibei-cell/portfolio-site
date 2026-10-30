@@ -98,6 +98,10 @@ body[data-phase="create"] #creator { right:0; top:var(--header); bottom:0; width
 .scene-done { flex:none; font-size:13px; font-weight:600; color:#527d64; }
 #practice .summary-sub { margin:28px 0 4px; }
 .survey-more { margin:4px 0 0; text-align:center; }
+#practice a.full-link { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:16px; border:1px solid #e9e0de; border-radius:8px; color:var(--ink); text-decoration:none; }
+#practice a.full-link:hover { background:#f8f1f4; }
+.full-link b { display:block; font-size:15px; font-weight:500; }
+.full-link small { display:block; font-size:12px; color:var(--muted); margin-top:5px; }
 .more-detail > summary { color:var(--ink); }
 #practice .survey-return + .next-btn { width:100%; margin-bottom:10px; }
 /* Shown until the 3D scene draws its first frame. */

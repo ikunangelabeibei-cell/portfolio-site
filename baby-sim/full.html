@@ -1,0 +1,1521 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Baby Sim · Everyday Moments</title>
+<style>
+  :root {
+    --ink: #3b2a2f;
+    --muted: #7a666b;
+    --accent: #d6385a;
+    --panel: rgba(255, 252, 250, 0.94);
+    --chip: #e9e6ff;
+    --chip-line: #c9c3f5;
+    --good: #5bbf8a;
+    --bad: #e2677f;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #f6e3d6; color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+  #ui { position: fixed; inset: 0; pointer-events: none; user-select: none; -webkit-user-select: none; }
+  #ui input { user-select: text; -webkit-user-select: text; }
+
+  .fade { opacity: 0; transition: opacity .45s ease, transform .45s ease; }
+  .fade.show { opacity: 1; transform: none !important; }
+
+  #chapter { position: absolute; top: 24px; left: 24px; display: flex; gap: 10px; align-items: center;
+    background: var(--panel); padding: 8px 16px 8px 8px; border-radius: 999px; font-size: 15px;
+    box-shadow: 0 4px 18px rgba(80, 40, 50, .12); transform: translateY(-8px); }
+  #chapNum { background: var(--accent); color: #fff; width: 26px; height: 26px; border-radius: 50%;
+    display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+
+  .card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -46%); text-align: center;
+    background: var(--panel); padding: 28px 40px; border-radius: 22px; max-width: min(560px, calc(100vw - 32px));
+    box-shadow: 0 10px 40px rgba(80, 40, 50, .18); }
+  .card.show { transform: translate(-50%, -50%) !important; }
+  .card h1, .card h2 { margin: 0 0 8px; font-family: Georgia, "Times New Roman", serif; font-weight: 400; }
+  .card h1 { font-size: 44px; }
+  .card h2 { font-size: 34px; color: var(--accent); }
+  .card p { margin: 0; color: var(--muted); line-height: 1.5; font-size: 17px; }
+  .tags { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  .tags span { background: var(--chip); border: 1px solid var(--chip-line); border-radius: 999px; padding: 4px 12px; font-size: 13px; }
+
+  .bubble { position: absolute; transform: translate(-85%, calc(-100% + 8px)); background: #fff; padding: 14px 18px;
+    border-radius: 20px; font-size: 19px; line-height: 1.35; font-weight: 600; width: max-content; max-width: 280px;
+    box-shadow: 0 6px 24px rgba(80, 40, 50, .16); }
+  .bubble.show { transform: translate(-85%, -100%) !important; }
+  .bubble::after { content: ""; position: absolute; right: 12%; bottom: -12px; border: 12px solid transparent;
+    border-top-color: #fff; border-bottom: 0; border-right: 0; }
+
+  .panel { position: absolute; right: 32px; top: 50%; width: 360px; transform: translate(20px, -50%);
+    background: var(--panel); border-radius: 20px; padding: 18px; box-shadow: 0 10px 40px rgba(80, 40, 50, .16); }
+  .panel.show { transform: translate(0, -50%) !important; }
+  .panel-head { font-family: Georgia, serif; color: var(--accent); font-size: 22px; margin: 2px 4px 12px; }
+
+  .opt { display: block; width: 100%; text-align: left; font: inherit; font-size: 16px; color: var(--ink);
+    background: #fff; border: 1.5px solid var(--chip-line); border-radius: 14px; padding: 12px 14px; margin: 8px 0;
+    transition: all .2s ease; }
+  .opt b { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+    background: var(--chip); margin-right: 8px; font-size: 13px; }
+  .opt.write { color: var(--muted); border-style: dashed; }
+  .opt.hover { background: #f4f2ff; border-color: #8f86e8; }
+  .opt.picked { background: var(--accent); border-color: var(--accent); color: #fff; transform: scale(1.03); }
+  .opt.picked b { background: rgba(255,255,255,.25); color: #fff; }
+  .opt.dim { opacity: .35; }
+
+  .said { position: absolute; left: 50%; bottom: 90px; font-size: 18px !important; transform: translate(-50%, 10px); background: var(--ink); color: #fff;
+    padding: 12px 20px; border-radius: 999px; font-size: 18px; white-space: nowrap; }
+  .said.show { transform: translate(-50%, 0) !important; }
+  .said span { font-weight: 700; }
+
+  #feedback { width: 420px; padding: 16px 18px; }
+  .who { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 4px; }
+  .fb-row { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 14px; margin-bottom: 8px; }
+  .fb-row .ava { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 16px; }
+  .fb-you { background: #f3eff0; }
+  .fb-you .ava { background: var(--ink); color: #fff; font-size: 12px; font-weight: 700; }
+  .fb-you .line { font-weight: 700; font-size: 16px; }
+  .fb-child { background: #fff4f6; }
+  .fb-child .ava { background: #ffd3e1; }
+  .fb-child .line { font-style: italic; font-size: 16px; line-height: 1.35; }
+  .stylepill { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 700;
+    text-transform: none; letter-spacing: 0; color: #fff; vertical-align: 1px; }
+  .fb-sec { display: flex; justify-content: space-between; align-items: baseline; margin: 12px 2px 6px; }
+  .fb-sec b { font-family: Georgia, serif; font-weight: 400; color: var(--accent); font-size: 19px; }
+  .fb-sec span { font-size: 11px; color: var(--muted); }
+  .ind { display: grid; grid-template-columns: 1fr 96px 42px; gap: 8px; align-items: center; padding: 5px 2px; border-top: 1px solid #f1e8e8; }
+  .ind .nm { font-size: 13.5px; font-weight: 600; line-height: 1.15; }
+  .ind .dm { display: block; font-size: 11px; font-weight: 400; color: var(--muted); }
+  .ind .bar { height: 9px; background: #efe6e6; border-radius: 999px; overflow: hidden; }
+  .ind .bar i { display: block; height: 100%; width: 55%; border-radius: 999px; background: #c9bdbd; }
+  .ind .dl { font-size: 12px; font-weight: 700; text-align: right; }
+  .why { font-size: 13px; line-height: 1.45; margin: 10px 2px 0; padding: 10px 12px; background: #faf6f2; border-radius: 12px; }
+  .why b { color: var(--accent); }
+  .note { font-size: 11px; color: var(--muted); margin: 8px 2px 0; line-height: 1.4; }
+  .retry { display: none; margin-top: 10px; width: 100%; font: inherit; font-size: 16px; font-weight: 600; color: var(--accent);
+    background: #fff; border: 1.5px solid var(--accent); border-radius: 14px; padding: 11px; transition: all .2s; }
+  .retry.hover { background: #fff0f3; }
+  .retry.picked { background: var(--accent); color: #fff; transform: scale(1.03); }
+
+  #creator { width: 470px; padding: 20px 20px 18px; }
+  .ctitle { display: flex; justify-content: space-between; align-items: baseline; }
+  .dice { font-family: ui-sans-serif, -apple-system, sans-serif; font-size: 13px; color: var(--muted); }
+  .tabs { display: flex; gap: 4px; background: #f3ecec; border-radius: 14px; padding: 4px; margin-bottom: 12px; }
+  .tab { flex: 1; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); background: none; border: 0;
+    border-radius: 10px; padding: 8px 2px; transition: all .2s; }
+  .tab.hover { color: var(--ink); background: rgba(255,255,255,.6); }
+  .tab.active { background: #fff; color: var(--accent); box-shadow: 0 2px 8px rgba(80,40,50,.12); }
+  .section { min-height: 250px; }
+  .stage { display: flex; align-items: center; gap: 6px; }
+  .arrow { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--chip); color: var(--ink);
+    font-size: 24px; line-height: 1; transition: all .15s; }
+  .arrow.hover { background: #d9d4ff; }
+  .arrow.press { background: var(--accent); color: #fff; transform: scale(.88); }
+  .viewport { position: relative; flex: 1; height: 126px; overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent); }
+  .strip { position: absolute; left: 0; top: 6px; display: flex; gap: 10px; transition: transform .45s cubic-bezier(.3, 1.35, .5, 1); }
+  .card2 { width: 96px; height: 112px; flex: none; background: #fff; border: 2px solid #eee4e4; border-radius: 18px;
+    display: grid; place-items: center; transition: all .3s; transform: scale(.84); opacity: .55; }
+  .card2.sel { border-color: var(--accent); transform: scale(1); opacity: 1; box-shadow: 0 4px 14px rgba(214, 56, 90, .22); }
+  .card2 svg { width: 76px; height: 76px; }
+  .optname { text-align: center; font-weight: 700; font-size: 19px; margin: 8px 0 4px; }
+  .dots { display: flex; justify-content: center; gap: 6px; margin-bottom: 12px; }
+  .dots i { width: 7px; height: 7px; border-radius: 4px; background: #e6dada; transition: all .3s; }
+  .dots i.on { background: var(--accent); width: 18px; }
+  .sublabel { text-align: center; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 7px; }
+  .swatches { display: flex; justify-content: center; gap: 10px; }
+  .swatch { width: 32px; height: 32px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 1.5px #e0d4d4; padding: 0; transition: all .2s; }
+  .swatch.hover { transform: scale(1.12); }
+  .swatch.sel { box-shadow: 0 0 0 2.5px var(--accent); transform: scale(1.15); }
+  .slider { position: relative; height: 30px; margin: 56px 24px 28px; border-radius: 999px; box-shadow: inset 0 1px 3px rgba(0,0,0,.15); }
+  .knob { position: absolute; top: 50%; width: 38px; height: 38px; border-radius: 50%; border: 4px solid #fff;
+    transform: translate(-50%, -50%); box-shadow: 0 3px 10px rgba(0,0,0,.28); }
+  .start { display: block; width: 100%; margin-top: 10px; font: inherit; font-size: 16px; font-weight: 700; color: #fff;
+    background: var(--ink); border: 0; border-radius: 14px; padding: 12px; transition: all .2s; }
+  .start.hover { background: #5a4148; }
+  .start.picked { background: var(--accent); transform: scale(1.03); }
+
+  .next-btn { display: block; width: 100%; margin-top: 10px; font: inherit; font-size: 16px; font-weight: 700; color: #fff;
+    background: var(--ink); border: 0; border-radius: 14px; padding: 12px; transition: all .25s; }
+  #seeBtn { opacity: 0; transform: translateY(6px); }
+  #seeBtn.ready { opacity: 1; transform: none; }
+  .next-btn.hover { background: #5a4148; }
+  .next-btn.picked { background: var(--accent); transform: scale(1.03); }
+  #finishBtn { display: none; }
+  #toast { position: absolute; left: 50%; top: 22px; transform: translate(-50%, -8px); background: var(--ink); color: #fff;
+    padding: 9px 18px 9px 12px; border-radius: 999px; font-size: 15px; white-space: nowrap; display: flex; gap: 8px; align-items: center;
+    box-shadow: 0 6px 20px rgba(0,0,0,.2); }
+  #toast.show { transform: translate(-50%, 0) !important; }
+  #toast::before { content: "👆"; }
+  #narr { position: absolute; left: 50%; bottom: 84px; transform: translate(-50%, 8px); background: rgba(255,252,250,.94); color: var(--ink);
+    padding: 9px 18px; border-radius: 999px; font-size: 16px; font-style: italic; white-space: nowrap; box-shadow: 0 4px 16px rgba(80,40,50,.14); }
+  #narr.show { transform: translate(-50%, 0) !important; }
+
+  #reflect { width: 560px; padding: 18px 22px 20px; }
+  .steps { display: flex; gap: 6px; margin-bottom: 12px; }
+  .steps span { flex: 1; text-align: center; font-size: 12px; font-weight: 700; color: var(--muted); padding: 6px 0;
+    border-bottom: 3px solid #eee3e3; transition: all .3s; }
+  .steps span.done { color: var(--ink); border-color: #e7b9c4; }
+  .steps span.on { color: var(--accent); border-color: var(--accent); }
+  .rstep { display: none; }
+  .rstep.on { display: block; animation: rin .45s ease; }
+  @keyframes rin { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+  #radar { width: 100%; height: 260px; display: block; }
+  #radar text { font: 600 11.5px ui-sans-serif, -apple-system, sans-serif; fill: var(--ink); }
+  .legend { display: flex; gap: 14px; justify-content: center; font-size: 13px; flex-wrap: wrap; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .rnote { font-size: 13.5px; line-height: 1.45; color: var(--muted); margin: 12px 2px 0; }
+  .rnote b { color: var(--ink); }
+  .insight { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: #f1faf5; border: 1.5px solid #bfe6cf;
+    font-size: 14px; line-height: 1.45; opacity: 0; transform: translateY(8px); transition: all .4s; }
+  .insight b { display: block; color: #2f8a5b; margin-bottom: 3px; }
+  .insight.on { opacity: 1; transform: none; }
+  .plan { list-style: none; padding: 0; margin: 0; counter-reset: p; }
+  .plan li { counter-increment: p; position: relative; padding: 12px 14px 12px 54px; margin-bottom: 10px; background: #fff;
+    border: 1.5px solid #eee3e3; border-radius: 14px; font-size: 15px; opacity: 0; transform: translateX(14px); transition: all .45s; }
+  .plan li::before { content: counter(p); position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px;
+    border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 700; }
+  .plan li b { display: block; font-size: 13px; color: var(--accent); }
+  .plan li.on { opacity: 1; transform: none; }
+  .scen { display: flex; gap: 10px; }
+  .scard { flex: 1; font: inherit; background: #fff; border: 2px solid #eee3e3; border-radius: 16px; padding: 14px 8px; text-align: center; transition: all .25s; }
+  .scard em { display: block; font-style: normal; font-size: 30px; margin-bottom: 4px; }
+  .scard b { display: block; font-size: 15px; color: var(--ink); }
+  .scard span { font-size: 12px; color: var(--muted); }
+  .scard.hover { border-color: #8f86e8; }
+  .scard.picked { border-color: var(--accent); background: #fff4f6; transform: scale(1.04); }
+
+  #rewind { position: absolute; inset: 0; display: grid; place-items: center; font-size: 30px; font-family: Georgia, serif;
+    color: var(--ink); background: rgba(255, 250, 247, .75); backdrop-filter: blur(6px); }
+
+  #cursor { position: absolute; left: 0; top: 0; width: 28px; height: 28px; opacity: 0; transition: opacity .25s;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,.3)); }
+  #cursor.show { opacity: 1; }
+  #cursor svg { transition: transform .12s; transform-origin: 4px 4px; }
+  #cursor.down svg { transform: scale(.8); }
+  #cursor .ring { position: absolute; left: -14px; top: -14px; width: 36px; height: 36px; border-radius: 50%;
+    border: 3px solid var(--accent); opacity: 0; }
+  #cursor.down .ring { animation: ring .45s ease-out; }
+  @keyframes ring { from { opacity: 1; transform: scale(.3); } to { opacity: 0; transform: scale(1.4); } }
+
+  #controls { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; align-items: center; gap: 12px;
+    background: rgba(59, 42, 47, .82); color: #fff; padding: 8px 14px; border-radius: 999px; font-size: 13px;
+    width: min(560px, calc(100vw - 32px)); }
+  #controls button { background: none; border: 0; color: #fff; font-size: 18px; cursor: pointer; padding: 2px 4px; }
+  #controls input { flex: 1; accent-color: #ff8aa3; min-width: 0; }
+  #controls .hint { opacity: .6; white-space: nowrap; }
+  body.clean #controls { display: none; }
+
+  @media (max-width: 760px) {
+    #reflect { width: auto; } #radar { height: 200px; }
+    #creator { width: auto; } .section { min-height: 180px; } .viewport { height: 96px; } .card2 { width: 72px; height: 86px; }
+    .panel { left: 16px; right: 16px; width: auto; top: auto; bottom: 76px; transform: translateY(20px); padding: 14px; }
+    .panel.show { transform: none !important; }
+    .opt { font-size: 14px; padding: 9px 12px; margin: 6px 0; }
+    .card { padding: 22px; } .card h1 { font-size: 34px; }
+    .bubble { font-size: 16px; max-width: 200px; }
+    .said { bottom: auto; top: 76px; font-size: 15px; }
+    #chapter { left: 16px; top: 16px; font-size: 13px; }
+    #controls .hint { display: none; }
+  }
+
+  /* ---- interactive version ---- */
+  #ui .fade.show { pointer-events: auto; }
+  #ui button, #ui .swatch, #ui .card2 { cursor: pointer; }
+  .tab:hover { color: var(--ink); background: rgba(255,255,255,.6); }
+  .arrow:hover { background: #d9d4ff; }
+  .arrow:active { background: var(--accent); color: #fff; transform: scale(.88); }
+  .swatch:hover { transform: scale(1.12); }
+  .opt:hover:not(.dim):not(.picked) { background: #f4f2ff; border-color: #8f86e8; }
+  .start:hover, .next-btn:hover { background: #5a4148; }
+  .retry:hover { background: #fff0f3; }
+  .scard:hover { border-color: #8f86e8; }
+  .opt.locked, .opt.locked:hover { pointer-events: none; }
+  button.dice { font: inherit; font-size: 13px; color: var(--muted); background: none; border: 0; padding: 4px 6px; border-radius: 8px; }
+  button.dice:hover { background: #f3ecec; color: var(--ink); }
+  .knob { cursor: grab; touch-action: none; } .slider { touch-action: none; cursor: pointer; }
+  #writeBox { display: none; gap: 8px; margin: 8px 0; }
+  #writeBox.on { display: flex; }
+  #writeInput { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--chip-line); outline: none; color: var(--ink); }
+  #writeInput:focus { border-color: #8f86e8; }
+  #writeSend { font: inherit; font-weight: 700; font-size: 15px; color: #fff; background: var(--accent); border: 0; border-radius: 12px; padding: 0 16px; }
+  #beginBtn { margin-top: 20px; }
+  .retry { display: block; }
+  #restartBtn { position: fixed; left: 24px; bottom: 20px; font: inherit; font-size: 13px; font-weight: 600; color: var(--ink);
+    background: var(--panel); border: 0; border-radius: 999px; padding: 8px 14px; box-shadow: 0 4px 18px rgba(80,40,50,.12); z-index: 5; cursor: pointer; }
+  #restartBtn:hover { background: #fff; }
+  #fbBtns { display: flex; gap: 8px; margin-top: 10px; }
+  #fbBtns .retry, #fbBtns .next-btn { margin: 0; flex: 1; padding: 11px 6px; font-size: 15px; }
+  #finishBtn { display: block; }
+  .row2 { display: flex; gap: 8px; margin-top: 12px; }
+  .row2 .retry { margin: 0; flex: 1; font-size: 14px; padding: 10px 6px; }
+  .legend .tried { font-weight: 700; } .legend .untried { opacity: .6; }
+  #seeBtn:not(.ready) { pointer-events: none; }
+  .said { white-space: normal !important; max-width: min(640px, 90vw); text-align: center; }
+  .steps span { cursor: pointer; }
+
+  #options, #feedback, #reflect, #narr, #said, #rewind, #endcard { display: none !important; }
+  #practice { pointer-events: auto; position: absolute; right: 24px; top: 84px; bottom: 64px; width: min(460px, calc(100vw - 48px)); padding: 24px; overflow-y: auto; border-radius: 24px; background: var(--panel); box-shadow: 0 12px 45px #50303225; user-select: text; }
+  #practice[hidden] { display: none; }
+  #practice h2 { font: 32px Georgia, serif; margin: 8px 0 14px; }
+  #practice h3 { font-size: 17px; margin-bottom: 6px; }
+  #practice p { line-height: 1.5; }
+  .eyebrow { font-size: 11px; font-weight: 800; letter-spacing: .09em; color: var(--accent); }
+  #practice label { display: block; font-weight: 700; font-size: 14px; margin: 18px 0 8px; }
+  #practice select, #practice textarea { width: 100%; font: inherit; color: var(--ink); background: white; border: 1px solid var(--chip-line); border-radius: 12px; padding: 12px; }
+  #practice textarea { min-height: 100px; resize: vertical; user-select: text; }
+  .stage-note, .practice-note { color: var(--muted); font-size: 13px; }
+  .practice-note { font-size: 11px; }
+  .scenario-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 18px 0; }
+  .scenario-grid button { text-align: left; padding: 16px; background: white; border: 1px solid var(--chip-line); border-radius: 16px; color: var(--ink); font: inherit; }
+  .scenario-grid button:hover:enabled { border-color: var(--accent); background: #fff3f6; }
+  .scenario-grid button:disabled { opacity: .45; cursor: default; }
+  .scenario-grid span { font-size: 28px; display: block; margin-bottom: 10px; }
+  .scenario-grid b, .scenario-grid small { display: block; }
+  .scenario-grid small { color: var(--muted); margin-top: 6px; line-height: 1.4; }
+  #practice .opt small { display: block; color: var(--accent); font-size: 11px; margin-bottom: 5px; font-weight: 700; }
+  .progress { display: flex; gap: 6px; }
+  .progress span { flex: 1; height: 5px; background: #e7dede; border-radius: 4px; }
+  .progress .active { background: var(--accent); }
+  .prompt { font: 22px Georgia,serif; }
+  .context, .response-card { background: #f0edf9; padding: 12px; border-radius: 14px; font-size: 14px; }
+  .journal-turn { border-bottom: 1px solid #e8dede; padding: 12px 0; }
+  .journal-turn small { display: block; color: var(--muted); margin-top: 5px; }
+  #libraryBtn { position: fixed; right: 24px; top: 22px; background: var(--ink); color: white; border: 0; border-radius: 999px; padding: 12px 18px; cursor: pointer; font: inherit; font-size: 13px; }
+  button:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid #8f86e8; outline-offset: 3px; }
+  @media(max-width:760px) { #practice { top: 45vh; right: 12px; bottom: 60px; width: calc(100vw - 24px); padding: 18px; } #practice[data-phase="library"], #practice[data-phase="journal"], #practice[data-phase="summary"] { top: 88px; } #libraryBtn { right:12px; } #chapter { max-width: 52vw; } }
+
+  #practice h2 { color: #cd6d86; font-weight: 400; }
+  #practice[data-phase="choose"], #practice[data-phase="intro"], #practice[data-phase="react"] { top: 50%; bottom: auto; transform: translateY(-50%); max-height: calc(100vh - 140px); }
+  #practice[data-phase="choose"] { width: min(440px, calc(100vw - 48px)); }
+  #practice[data-phase="analysis"] { width: min(510px, calc(100vw - 48px)); background: rgba(255,252,253,.97); }
+  #practice .dialogue-choice { display: flex; align-items: flex-start; gap: 8px; padding: 13px 14px; font-size: 16px; line-height: 1.45; border-color: #ded5ed; }
+  .dialogue-choice b { flex: none; margin: 0; width: 26px; height: 26px; background: #eee8f5; color: #746777; }
+  .dialogue-choice span { flex: 1; }
+  .mobile-dialogue { display: none; }
+  .turn-counter { font-size: 11px; color: var(--muted); margin: 8px 0 12px; }
+  .scene-context { font-size: 14px; color: var(--muted); }
+  .selected-dialogue { font-size: 21px; font-weight: 600; }
+  .development-head { display: flex; align-items: baseline; gap: 12px; margin-top: 20px; }
+  #practice .development-head h2 { font-size: 25px; margin-bottom: 5px; }
+  .development-head span { font-size: 10px; color: var(--muted); }
+  .lens-note { font-size: 12px; margin: 4px 0 14px; color: var(--muted); }
+  .lens-note span { margin-left: 6px; color: #b4677b; }
+  .development-row { display: grid; grid-template-columns: minmax(135px,1fr) 80px 88px; gap: 10px; align-items: center; padding: 10px 0; border-top: 1px solid #efe7ea; }
+  .development-row b { font-size: 14px; }
+  .development-row small { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .direction-track { height: 9px; border-radius: 20px; background: #f0e7eb; overflow: hidden; }
+  .direction-track i { display: block; height: 100%; border-radius: 20px; background: #d27790; }
+  .supported .direction-track i { background: #65aa85; }
+  .mixed .direction-track i { background: #c7a669; }
+  .unshown .direction-track { border: 1px dashed #bdaeb5; background: transparent; }
+  .direction-label { color: #b46980; font-size: 10px; font-weight: 700; text-align: right; }
+  .supported .direction-label { color: #46876a; }
+  .mixed .direction-label { color: #9f7c3e; }
+  .unshown .direction-label { color: var(--muted); }
+  .development-row details { grid-column: 1 / -1; font-size: 11px; color: var(--muted); }
+  .development-row details p { margin: 6px 0; font-size: 12px; }
+  #practice summary { cursor: pointer; }
+  #practice .why { font-size: 14px; background: none; padding: 14px 0; }
+  .factor-details { background: #f6f0f4; border-radius: 12px; padding: 10px 12px; font-size: 12px; color: var(--muted); }
+  .repair-note { background: #f5f3ee; border-radius: 14px; padding: 12px 14px; margin-top: 12px; font-size: 13px; }
+  .repair-note b { color: #af6078; }
+  .repair-note p { margin: 5px 0; }
+  .text-button { display: block; margin: 12px auto 0; border: 0; background: none; font: inherit; font-size: 12px; color: var(--muted); cursor: pointer; text-decoration: underline; }
+  .identity-controls { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; }
+  #practice input { width: 100%; border: 1px solid var(--chip-line); padding: 12px; border-radius: 12px; font: inherit; color: var(--ink); user-select: text; }
+  .source-list { padding-left: 20px; line-height: 1.5; font-size: 14px; }
+  .source-list li { margin: 12px 0; }
+  #practice a { color: #a95070; }
+  #practice .fb-row small { font-size: 10px; color: var(--muted); }
+  #practice .fb-you .line { margin-top: 5px; font-size: 18px; }
+  #practice .fb-child .line { font-size: 18px; }
+  @media(max-width:760px) {
+    #practice[data-phase="choose"], #practice[data-phase="analysis"] { width: calc(100vw - 24px); }
+    #practice[data-phase="analysis"], #practice[data-phase="research"] { top: 88px; }
+    #practice[data-phase="choose"], #practice[data-phase="intro"], #practice[data-phase="react"] { transform: none; max-height: none; bottom: 64px; }
+    #practice[data-phase="intro"], #practice[data-phase="react"] { top: 45vh; }
+    #practice[data-phase="choose"] { top: 38vh; }
+    #practice[data-phase="choose"] h2 { font-size: 26px; }
+    .mobile-dialogue { display: block; font: 19px Georgia,serif; line-height: 1.4; }
+    #bubble { display: none; }
+    .development-row { grid-template-columns: minmax(100px,1fr) 66px 82px; gap: 7px; }
+    .development-head { display: block; }
+    .identity-controls { grid-template-columns: 1fr; gap: 0; }
+  }
+</style>
+<link rel="stylesheet" href="simulator-ui.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="loading" role="status"><div><b>Baby Sim</b><span id="loadingText">Loading the scene…</span></div></div>
+<script>
+  // Three.js loads from a CDN; explain a slow or failed load instead of showing a blank page.
+  setTimeout(() => { const t = document.getElementById('loadingText'); if (t && !document.getElementById('loading').hidden) t.textContent = 'Still loading… If nothing appears, check your connection and refresh the page.'; }, 12000);
+</script>
+<canvas id="c"></canvas>
+
+<div id="ui">
+  <div id="chapter" class="fade"><span id="chapNum">1</span><span id="chapText">An everyday moment</span></div>
+
+  <div id="title" class="card fade">
+    <h1>Baby Sim</h1>
+    <p>Choose a scene, respond, and explore how the conversation might feel.</p>
+
+    <button class="start" id="beginBtn">Start</button>
+  </div>
+
+  <div id="creator" class="panel fade">
+    <div class="panel-head ctitle">Choose an appearance <button class="dice" id="dice">🎲 Surprise me</button></div>
+    <div class="tabs">
+      <button class="tab" data-cat="gender">Gender</button>
+      <button class="tab" data-cat="face">Face</button>
+      <button class="tab" data-cat="skin">Skin</button>
+      <button class="tab" data-cat="hair">Hair</button>
+      <button class="tab" data-cat="outfit">Clothes</button>
+    </div>
+    <div class="section" id="secCarousel">
+      <div class="stage">
+        <button class="arrow" id="arrL">‹</button>
+        <div class="viewport" id="viewport"><div class="strip" id="strip"></div></div>
+        <button class="arrow" id="arrR">›</button>
+      </div>
+      <div class="optname" id="optName"></div>
+      <div class="dots" id="dots"></div>
+      <div id="hairColors"><div class="sublabel">Hair color</div><div class="swatches" id="swatches"></div></div>
+    </div>
+    <div class="section" id="secSkin">
+      <div class="slider" id="skinTrack"><div class="knob" id="skinKnob"></div></div>
+      <div class="optname">Skin color</div>
+      <div class="sublabel">Drag to choose · every child is unique</div>
+    </div>
+    <button class="start" id="startBtn">Start the moment →</button>
+  </div>
+
+  <div id="bubble" class="bubble fade">Uh-oh… my tower fell down.<br>Can you help me?</div>
+
+  <div id="options" class="panel fade">
+    <div class="panel-head">How would you respond?</div>
+    <button class="opt" id="optA"><b>A</b>“Oops! Let's build it again together.”</button>
+    <button class="opt" id="optB"><b>B</b>“Stop making a mess!”</button>
+    <button class="opt" id="optC"><b>C</b>“You're fine. Do it yourself.”</button>
+    <button class="opt write" id="writeBtn"><b>✎</b>Write your own…</button>
+    <div id="writeBox"><input id="writeInput" maxlength="140" placeholder="What would you say?" autocomplete="off"><button id="writeSend">Say it</button></div>
+    <button class="next-btn" id="seeBtn">See how your child might feel →</button>
+  </div>
+
+  <div id="narr" class="fade"></div>
+  <div id="said" class="said fade">You said: <span id="saidText"></span></div>
+
+  <div id="feedback" class="panel fade">
+    <div class="fb-row fb-you"><div class="ava">You</div><div>
+      <span class="who">Your response <span class="stylepill" id="fbStyle"></span></span>
+      <div class="line" id="fbYou"></div></div></div>
+    <div class="fb-row fb-child"><div class="ava">🧸</div><div>
+      <span class="who">What the child might be thinking</span>
+      <div class="line" id="fbQuote"></div></div></div>
+    <div class="fb-sec"><b>Development check-in</b><span>compared with before the moment</span></div>
+    <div id="indicators"></div>
+    <p class="why" id="fbWhy"></p>
+    <p class="note">Areas drawn from domains used in early-childhood screeners (e.g. ASQ:SE-2) and research on attachment and
+      “serve-and-return” interaction. One moment doesn’t define a child — these show direction, not a measurement.</p>
+    <div id="fbBtns"><button class="retry" id="retry">↺ Try a different response</button>
+    <button class="next-btn" id="finishBtn">Finish &amp; reflect →</button></div>
+  </div>
+
+  <div id="rewind" class="fade">↺ Let's try that moment again</div>
+
+  <div id="reflect" class="panel fade">
+    <div class="steps"><span>1 Compare</span><span>2 Your habit</span><span>3 Try next time</span><span>4 Practice</span></div>
+    <section class="rstep">
+      <div class="panel-head">Responses, side by side</div>
+      <svg id="radar" viewBox="-165 -128 330 256"></svg>
+      <div class="legend" id="legend"></div>
+      <p class="rnote">Biggest gaps: <b>Persistence &amp; curiosity</b> and <b>Asking for help</b> — the skills a child needs to try again.</p>
+    </section>
+    <section class="rstep">
+      <div class="panel-head">On a tired, rushed day, which sounds more like you?</div>
+      <button class="opt" id="h0"><b>✕</b>Closer to the critical one — I tend to get sharp</button>
+      <button class="opt" id="h1"><b>~</b>Somewhere in between</button>
+      <button class="opt" id="h2"><b>♥</b>Closer to the warm one — I usually stay calm</button>
+      <div class="insight" id="insight"><b>Your pattern</b>You already know the warm response. The hard part is reaching for it
+        under stress — being tired, rushed, or worried about mess are the most common triggers. Noticing that is the first step.</div>
+    </section>
+    <section class="rstep">
+      <div class="panel-head">Try this next time</div>
+      <ol class="plan">
+        <li><b>Pause</b>Take one breath before you speak.</li>
+        <li><b>Name the feeling</b>“Oh no, it fell! That's frustrating.”</li>
+        <li><b>Fix it together</b>“Want to build it again with me?”</li>
+      </ol>
+      <p class="rnote">Why it works: naming a feeling helps young children calm down, and fixing it together turns a mistake into practice.</p>
+    </section>
+    <section class="rstep">
+      <div class="panel-head">Practice another moment</div>
+      <div class="scen">
+        <button class="scard" id="sc0"><em>🥛</em><b>Spilled milk</b><span>at breakfast</span></button>
+        <button class="scard" id="sc1"><em>🌙</em><b>Bedtime</b><span>“I'm not tired!”</span></button>
+        <button class="scard" id="sc2"><em>🧸</em><b>Sharing</b><span>with a friend</span></button>
+      </div>
+      <div class="insight" id="saved"><b>✓ Added to your practice plan</b><span id="savedText"></span></div>
+      <div class="row2"><button class="retry" id="replayBtn">↺ Replay the tower moment</button><button class="retry" id="redesignBtn">✎ Design a new baby</button></div>
+    </section>
+    <button class="next-btn" id="rNext">Next →</button>
+  </div>
+
+  <div id="endcard" class="card fade">
+    <h2>See you next moment</h2>
+    <p>Every response is a chance to practice.<br>Small repairs add up.</p>
+  </div>
+
+</div>
+
+<button id="restartBtn" title="Start over">↺ Start over</button>
+
+<script type="module">
+history.scrollRestoration = "manual";
+import { createPractice } from './practice.js';
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+
+const INTRO = 23.5;        // doll-style design segment before the story
+const STORY_END = 54;     // story runs 0 → STORY_END
+const DURATION = INTRO + STORY_END;
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const smooth = (a, b, t) => { const k = clamp((t - a) / (b - a)); return k * k * (3 - 2 * k); };
+const within = (t, a, b) => t >= a && t < b;
+const pulse = (t, a, b, f = 0.4) => smooth(a, a + f, t) * (1 - smooth(b - f, b, t));
+
+// ---------- renderer / scene ----------
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMappingExposure = 0.92;
+
+const scene = new THREE.Scene();
+const bgWarm = new THREE.Color('#f3d9c9'), bgCool = new THREE.Color('#9fa9bd');
+scene.background = bgWarm.clone();
+scene.fog = new THREE.Fog(bgWarm.clone(), 9, 18);
+
+const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 60);
+
+const hemiWarm = new THREE.Color('#fff3e6'), hemiCool = new THREE.Color('#b9c6e6');
+const hemi = new THREE.HemisphereLight(hemiWarm.clone(), '#d6b597', 0.55);
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.add(hemi);
+const key = new THREE.DirectionalLight('#fff0dc', 2.2);
+key.position.set(3, 5.5, 4);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+Object.assign(key.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 0.5, far: 20 });
+key.shadow.bias = -0.0005;
+key.shadow.radius = 5;
+scene.add(key);
+const rim = new THREE.DirectionalLight('#ffd3e6', 0.9);
+rim.position.set(-4, 3, -3);
+scene.add(rim);
+const fill = new THREE.DirectionalLight('#ffe6ef', 0.5);
+fill.position.set(-3, 2, 5); scene.add(fill);
+
+const mat = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.65, ...o });
+function mesh(geo, m, { cast = true, receive = false } = {}) {
+  const x = new THREE.Mesh(geo, m); x.castShadow = cast; x.receiveShadow = receive; return x;
+}
+
+// ---------- room ----------
+const floor = mesh(new THREE.PlaneGeometry(40, 40), mat('#e8d3bd', { roughness: 0.95 }), { cast: false, receive: true });
+floor.rotation.x = -Math.PI / 2; scene.add(floor);
+const rug = mesh(new THREE.CircleGeometry(2.3, 64), mat('#bfe0d8', { roughness: 1 }), { cast: false, receive: true });
+rug.rotation.x = -Math.PI / 2; rug.position.y = 0.004; scene.add(rug);
+const rugRing = mesh(new THREE.RingGeometry(1.9, 2.0, 64), mat('#f3fbf8', { roughness: 1 }), { cast: false, receive: true });
+rugRing.rotation.x = -Math.PI / 2; rugRing.position.y = 0.006; scene.add(rugRing);
+const wall = mesh(new THREE.PlaneGeometry(40, 14), mat('#f8e4d9', { roughness: 1 }), { cast: false, receive: true });
+wall.position.set(0, 7, -3.2); scene.add(wall);
+const skirting = mesh(new THREE.BoxGeometry(40, 0.18, 0.06), mat('#fffaf6'), { cast: false, receive: true });
+skirting.position.set(0, 0.09, -3.17); scene.add(skirting);
+
+// window
+const win = new THREE.Group();
+win.add(mesh(new RoundedBoxGeometry(1.9, 1.4, 0.1, 4, 0.04), mat('#ffffff'), { cast: false, receive: true }));
+const glass = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 1.2), new THREE.MeshBasicMaterial({ color: '#cfe8ff' }));
+glass.position.z = 0.051; win.add(glass);
+const barMat = mat('#ffffff');
+const barV = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.2, 0.03), barMat); barV.position.z = 0.06; win.add(barV);
+const barH = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.05, 0.03), barMat); barH.position.z = 0.06; win.add(barH);
+win.position.set(-2.1, 2.4, -3.13); scene.add(win);
+
+// a star garland on the wall
+const starShape = new THREE.Shape();
+for (let i = 0; i < 10; i++) {
+  const r = i % 2 ? 0.06 : 0.14, a = i / 10 * Math.PI * 2 + Math.PI / 2;
+  i ? starShape.lineTo(Math.cos(a) * r, Math.sin(a) * r) : starShape.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+}
+const starGeo = new THREE.ExtrudeGeometry(starShape, { depth: 0.03, bevelEnabled: false });
+['#ffcf5c', '#ff9fb5', '#9fd3ff', '#b8e994', '#ffcf5c'].forEach((c, i) => {
+  const s = mesh(starGeo, mat(c), { cast: false });
+  s.position.set(0.6 + i * 0.55, 2.75 - Math.sin(i / 4 * Math.PI) * 0.25, -3.15);
+  scene.add(s);
+});
+
+// spare toy ball
+const ball = mesh(new THREE.SphereGeometry(0.2, 32, 16), mat('#8fc7ff', { roughness: 0.4 }));
+ball.position.set(-1.35, 0.2, 0.3); scene.add(ball);
+const ballBand = mesh(new THREE.TorusGeometry(0.2, 0.03, 8, 40), mat('#ffffff', { roughness: 0.4 }));
+ballBand.position.copy(ball.position); ballBand.rotation.y = 0.8; scene.add(ballBand);
+
+// ---------- baby ----------
+const rand = i => { const h = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return h - Math.floor(h); };
+function smoothNormals(g) {
+  g.deleteAttribute('normal'); g.deleteAttribute('uv');
+  const m = mergeVertices(g); m.computeVertexNormals(); return m;
+}
+const phys = (color, o = {}) => new THREE.MeshPhysicalMaterial({ color, roughness: 0.6, ...o });
+const skin = phys('#f6c9a6', {
+  roughness: 0.5, sheen: 0.25, sheenRoughness: 0.5, sheenColor: new THREE.Color('#ffb09a'),
+  clearcoat: 0.08, clearcoatRoughness: 0.5, emissive: new THREE.Color('#ff6a4a'), emissiveIntensity: 0.07,
+});
+const cloth = c => phys(c, { roughness: 0.82, sheen: 0.35, sheenRoughness: 0.5, sheenColor: new THREE.Color('#fff4e6') });
+const outfitTop = cloth('#ffd46e'); outfitTop.side = THREE.DoubleSide;
+const outfitArms = cloth('#ffd46e'), outfitLegs = cloth('#ffd46e'), bellyMat = cloth('#fff2cc'), footMat = cloth('#ffffff');
+const trimMat = cloth('#ffffff'); trimMat.side = THREE.DoubleSide;
+const hairMat = phys('#6b4a33', {
+  roughness: 0.42, sheen: 1, sheenRoughness: 0.3, sheenColor: new THREE.Color('#a07a5a'),
+  clearcoat: 0.3, clearcoatRoughness: 0.35, side: THREE.DoubleSide,
+});
+
+const baby = new THREE.Group(); scene.add(baby);
+const bodyPivot = new THREE.Group(); baby.add(bodyPivot);
+
+// soft contact shadow under the baby
+{
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d'), grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grd.addColorStop(0, 'rgba(70,40,30,0.55)'); grd.addColorStop(0.6, 'rgba(70,40,30,0.18)'); grd.addColorStop(1, 'rgba(70,40,30,0)');
+  g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
+  const blob = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 1.7), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
+  blob.rotation.x = -Math.PI / 2; blob.position.set(0, 0.009, 0.22); baby.add(blob);
+}
+
+// torso: one smooth pear-shaped lathe instead of stacked balls
+const torsoGeo = (() => {
+  const prof = new THREE.SplineCurve([
+    new THREE.Vector2(0.001, 0.06), new THREE.Vector2(0.3, 0.08), new THREE.Vector2(0.5, 0.22), new THREE.Vector2(0.54, 0.4),
+    new THREE.Vector2(0.49, 0.62), new THREE.Vector2(0.38, 0.82), new THREE.Vector2(0.22, 0.98), new THREE.Vector2(0.001, 1.08),
+  ]).getPoints(48);
+  const g = new THREE.LatheGeometry(prof, 72), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const y = p.getY(i), z = p.getZ(i);
+    if (z > 0) p.setZ(i, z * (1 + 0.1 * Math.exp(-((y - 0.42) ** 2) / 0.03)));   // round tummy
+  }
+  return smoothNormals(g);
+})();
+const torso = mesh(torsoGeo, outfitTop); torso.scale.z = 0.9; bodyPivot.add(torso);
+const belly = mesh(new THREE.SphereGeometry(0.27, 32, 16), bellyMat);
+belly.scale.set(1, 1.15, 0.32); belly.position.set(0, 0.42, 0.47); bodyPivot.add(belly);
+
+// dress parts: ruffled skirt, white petticoat and a sash with a bow
+function ruffled(rTop, rBot, h, waves, amp) {
+  const g = new THREE.CylinderGeometry(rTop, rBot, h, 144, 6, true), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i), k = 0.5 - y / h, a = Math.atan2(x, z);
+    const f = 1 + amp * k * Math.sin(a * waves);
+    p.setXYZ(i, x * f, y + amp * 0.6 * k * Math.cos(a * waves), z * f);
+  }
+  return smoothNormals(g);
+}
+const skirt = mesh(ruffled(0.5, 0.76, 0.44, 9, 0.06), outfitTop); skirt.position.y = 0.31; skirt.scale.z = 0.93; bodyPivot.add(skirt);
+const hem = mesh(ruffled(0.58, 0.8, 0.12, 18, 0.07), trimMat); hem.position.y = 0.1; hem.scale.z = 0.93; bodyPivot.add(hem);
+const sash = new THREE.Group(); bodyPivot.add(sash);
+{
+  const band = mesh(new THREE.TorusGeometry(0.515, 0.035, 10, 72), trimMat);
+  band.rotation.x = Math.PI / 2; band.scale.y = 0.9; band.position.y = 0.52; sash.add(band);
+  for (const s of [-1, 1]) {
+    const lobe = mesh(new THREE.SphereGeometry(0.06, 20, 12), trimMat);
+    lobe.scale.set(1.2, 0.8, 0.5); lobe.position.set(s * 0.065, 0.53, 0.47); lobe.rotation.z = s * 0.3; sash.add(lobe);
+  }
+  const knot = mesh(new THREE.SphereGeometry(0.03, 12, 8), trimMat); knot.position.set(0, 0.53, 0.49); sash.add(knot);
+}
+
+// legs: thigh → knee → shin → foot with little toes
+const legs = {};
+for (const s of [-1, 1]) {
+  const hip = new THREE.Group(); hip.position.set(s * 0.21, 0.2, 0.16); hip.rotation.y = s * 0.42; bodyPivot.add(hip);
+  const thigh = mesh(new THREE.CapsuleGeometry(0.145, 0.16, 8, 20), outfitLegs); thigh.rotation.x = Math.PI / 2; thigh.position.z = 0.12; hip.add(thigh);
+  const knee = new THREE.Group(); knee.position.z = 0.26; hip.add(knee);
+  const shin = mesh(new THREE.CapsuleGeometry(0.12, 0.12, 8, 20), outfitLegs); shin.rotation.x = Math.PI / 2; shin.position.z = 0.1; knee.add(shin);
+  const foot = new THREE.Group(); foot.position.set(0, 0.01, 0.22); knee.add(foot);
+  const sole = mesh(new THREE.SphereGeometry(0.11, 24, 16), footMat); sole.scale.set(0.85, 0.78, 1.25); foot.add(sole);
+  for (let k = 0; k < 4; k++) {
+    const toe = mesh(new THREE.SphereGeometry(0.024 - k * 0.002, 10, 8), footMat, { cast: false });
+    toe.position.set(s * (0.045 - k * 0.03), 0.045 - k * 0.004, 0.115 - Math.abs(k - 1) * 0.01); foot.add(toe);
+  }
+  legs[s] = { hip, knee, foot };
+}
+
+// arms: shoulder → elbow → hand (mitten + thumb), baby-fat wrist crease
+const arms = {}, sleeves = [];
+for (const s of [-1, 1]) {
+  const shoulder = new THREE.Group(); shoulder.position.set(s * 0.42, 0.86, 0.02); bodyPivot.add(shoulder);
+  const upperArm = mesh(new THREE.CapsuleGeometry(0.105, 0.14, 8, 20), outfitArms); upperArm.position.y = -0.12; shoulder.add(upperArm);
+  const elbow = new THREE.Group(); elbow.position.y = -0.24; shoulder.add(elbow);
+  const fore = mesh(new THREE.CapsuleGeometry(0.095, 0.12, 8, 20), outfitArms); fore.position.y = -0.1; elbow.add(fore);
+  const hand = new THREE.Group(); hand.position.y = -0.25; elbow.add(hand);
+  const palm = mesh(new THREE.SphereGeometry(0.088, 24, 16), skin); palm.scale.set(1, 1.1, 0.78); palm.position.y = -0.02; hand.add(palm);
+  const fingers = mesh(new THREE.SphereGeometry(0.068, 20, 12), skin); fingers.scale.set(1.05, 0.9, 0.72); fingers.position.set(0, -0.085, 0.012); hand.add(fingers);
+  const thumb = mesh(new THREE.SphereGeometry(0.033, 12, 10), skin); thumb.scale.set(1, 1.5, 1);
+  thumb.position.set(-s * 0.074, -0.02, 0.035); thumb.rotation.z = -s * 0.5; hand.add(thumb);
+  const wrist = mesh(new THREE.TorusGeometry(0.078, 0.012, 8, 28), skin, { cast: false }); wrist.rotation.x = Math.PI / 2; wrist.position.y = 0.055; hand.add(wrist);
+  const sleeve = mesh(new THREE.SphereGeometry(0.14, 24, 16), outfitTop); sleeve.position.y = -0.06; shoulder.add(sleeve); sleeves.push(sleeve);
+  arms[s] = { shoulder, elbow, hand };
+}
+
+// ---------- head: sculpted baby head (full cranium, chubby cheeks, small chin) ----------
+const FACE_PARAMS = { round: { cheek: 0.06, jaw: 0.16 }, oval: { cheek: 0.035, jaw: 0.26 }, chubby: { cheek: 0.1, jaw: 0.06 } };
+const HEAD_R = 0.56;
+const gauss = (n, x, y, z, w) => { const dx = n.x - x, dy = n.y - y, dz = n.z - z; return Math.exp(-(dx * dx + dy * dy + dz * dz) / w); };
+function headRadius(n, p) {
+  let r = HEAD_R * (1 + 0.05 * Math.max(0, n.y) - 0.03 * Math.max(0, n.z) * Math.max(0, n.y));
+  for (const s of [-1, 1]) r += p.cheek * gauss(n, s * 0.52, -0.38, 0.72, 0.09);
+  if (n.y < -0.2) r *= 1 - p.jaw * (-n.y - 0.2) * Math.abs(n.x);
+  r += 0.015 * gauss(n, 0, -0.72, 0.68, 0.03);
+  for (const s of [-1, 1]) r -= 0.02 * gauss(n, s * 0.34, 0.08, 0.93, 0.012);   // eye sockets
+  return r;
+}
+const _n = new THREE.Vector3();
+function onFace(x, y, z, p = FACE_PARAMS.round, out = 0) {
+  _n.set(x, y, z).normalize(); return _n.clone().multiplyScalar(headRadius(_n, p) + out);
+}
+const HEAD_GEOS = Object.fromEntries(Object.entries(FACE_PARAMS).map(([k, p]) => {
+  const g = new THREE.SphereGeometry(1, 128, 96), pos = g.attributes.position, v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) { v.fromBufferAttribute(pos, i).normalize(); v.multiplyScalar(headRadius(v, p)); pos.setXYZ(i, v.x, v.y, v.z); }
+  return [k, smoothNormals(g)];
+}));
+const head = new THREE.Group(); head.position.y = 1.3; bodyPivot.add(head);
+const headMesh = mesh(HEAD_GEOS.round, skin); head.add(headMesh);
+const faceUp = new THREE.Vector3(0, 0, 1);
+
+for (const s of [-1, 1]) {
+  const ear = new THREE.Group(); ear.position.copy(onFace(s, 0.02, -0.05, undefined, -0.025)); ear.rotation.y = s * 0.25;
+  const outer = mesh(new THREE.SphereGeometry(0.105, 24, 16), skin); outer.scale.set(0.42, 1, 0.78); ear.add(outer);
+  head.add(ear);
+}
+const nose = mesh(new THREE.SphereGeometry(0.046, 20, 14), skin);
+nose.scale.set(1.3, 0.95, 0.8); nose.position.copy(onFace(0, -0.12, 1, undefined, -0.012)); head.add(nose);
+
+// big glossy eyes with iris, pupil, glints and real eyelids
+const eyeWhite = phys('#fbfaf8', { roughness: 0.08, clearcoat: 1, clearcoatRoughness: 0.04 });
+const irisOuter = phys('#2e1d15', { roughness: 0.15, clearcoat: 1, clearcoatRoughness: 0.04 });
+const irisInner = phys('#70482f', { roughness: 0.15, clearcoat: 1, clearcoatRoughness: 0.04 });
+const pupilMat = phys('#060404', { roughness: 0.1, clearcoat: 1 });
+const glint = new THREE.MeshBasicMaterial({ color: '#ffffff' });
+const lashMat = phys('#1d1412', { roughness: 0.6 });
+const EYE_R = 0.12;
+const eyes = {}, brows = {}, cheeks = [];
+for (const s of [-1, 1]) {
+  const n = new THREE.Vector3(s * 0.34, 0.08, 0.93).normalize();
+  const socket = new THREE.Group();
+  socket.position.copy(onFace(n.x, n.y, n.z)).addScaledVector(n, -0.058);
+  socket.rotation.y = s * 0.12; head.add(socket);
+  const ball = new THREE.Group(); socket.add(ball);
+  ball.add(mesh(new THREE.SphereGeometry(EYE_R, 40, 28), eyeWhite, { cast: false }));
+  for (const [r, th, m] of [[1.004, 0.68, irisOuter], [1.008, 0.54, irisInner], [1.012, 0.28, pupilMat]]) {
+    const c = new THREE.Mesh(new THREE.SphereGeometry(EYE_R * r, 40, 12, 0, Math.PI * 2, 0, th), m); c.rotation.x = Math.PI / 2; ball.add(c);
+  }
+  const g1 = new THREE.Mesh(new THREE.SphereGeometry(0.027, 16, 12), glint); g1.position.set(0.036, 0.046, 0.104); ball.add(g1);
+  const g2 = new THREE.Mesh(new THREE.SphereGeometry(0.012, 12, 8), glint); g2.position.set(-0.034, -0.036, 0.11); ball.add(g2);
+
+  const upper = mesh(new THREE.SphereGeometry(EYE_R * 1.07, 40, 16, 0, Math.PI * 2, 0, Math.PI / 2), skin, { cast: false });
+  socket.add(upper);
+  const lash = mesh(new THREE.TorusGeometry(EYE_R * 1.08, 0.01, 6, 36, Math.PI), lashMat, { cast: false });
+  lash.rotation.x = Math.PI / 2; upper.add(lash);
+  for (const a of [0.28, 0.55]) {
+    const ang = s > 0 ? a : Math.PI - a;
+    const flick = mesh(new THREE.ConeGeometry(0.011, 0.05, 6), lashMat, { cast: false });
+    flick.position.set(Math.cos(ang) * EYE_R * 1.1, 0.012, Math.sin(ang) * EYE_R * 1.1);
+    flick.rotation.set(0.3, 0, -s * (1.1 - a)); upper.add(flick);
+  }
+  const lower = mesh(new THREE.SphereGeometry(EYE_R * 1.06, 40, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), skin, { cast: false });
+  socket.add(lower);
+  eyes[s] = { socket, ball, upper, lower };
+
+  const brow = new THREE.Group(); brow.position.copy(onFace(s * 0.33, 0.44, 0.85, undefined, 0.01)); brow.rotation.x = -0.4; brow.userData.y = brow.position.y;
+  const arc = mesh(new THREE.TorusGeometry(0.1, 0.017, 8, 20, 1.0), hairMat, { cast: false });
+  arc.rotation.z = Math.PI / 2 - 0.5; arc.position.y = -0.1; brow.add(arc);
+  head.add(brow); brows[s] = brow;
+
+  const cheek = mesh(new THREE.SphereGeometry(0.09, 24, 16), phys('#ff8e9e', { roughness: 0.8, transparent: true, opacity: 0.5 }), { cast: false });
+  cheek.userData.side = s; head.add(cheek); cheeks.push(cheek);
+}
+
+// mouth: closed smile line, or an open mouth with a tongue
+const mouth = new THREE.Group(); head.add(mouth);
+{
+  const d = new THREE.Vector3(0, -0.34, 0.94).normalize();
+  mouth.position.copy(onFace(d.x, d.y, d.z)); mouth.quaternion.setFromUnitVectors(faceUp, d);
+}
+const lipArc = mesh(new THREE.TorusGeometry(0.068, 0.014, 8, 24, Math.PI), phys('#a8434f', { roughness: 0.5 }), { cast: false }); mouth.add(lipArc);
+const cavity = mesh(new THREE.SphereGeometry(1, 32, 16), phys('#5b1e2a', { roughness: 0.7 }), { cast: false }); mouth.add(cavity);
+const tongue = mesh(new THREE.SphereGeometry(1, 24, 12), phys('#ff8f9c', { roughness: 0.5 }), { cast: false }); mouth.add(tongue);
+
+// ---------- hairstyles: built from individual tapered locks ----------
+const hairRoot = new THREE.Group(); head.add(hairRoot);
+const FRONT = Math.PI / 2; // three.js sphere phi that faces +z
+const cap = (r, thetaLen, gap = 0) => new THREE.Mesh(
+  new THREE.SphereGeometry(r, 48, 24, FRONT + gap, Math.PI * 2 - gap * 2, 0, thetaLen), hairMat);
+// my own spherical coords: ph = 0 faces front, positive toward +x
+const sph = (th, ph, r) => new THREE.Vector3(Math.sin(ph) * Math.sin(th) * r, Math.cos(th) * r, Math.cos(ph) * Math.sin(th) * r);
+function lockMesh(pts, r0, r1, flat = 0.5, seg = 18) {
+  const curve = new THREE.CatmullRomCurve3(pts), radial = 8;
+  const g = new THREE.TubeGeometry(curve, seg, 1, radial, false), pos = g.attributes.position;
+  const P = new THREE.Vector3(), V = new THREE.Vector3(), R = new THREE.Vector3();
+  for (let i = 0; i <= seg; i++) {
+    const k = i / seg; curve.getPointAt(k, P); R.copy(P).normalize();
+    const rad = lerp(r0, r1, k) * (1 + 0.25 * Math.sin(Math.PI * k));
+    for (let j = 0; j <= radial; j++) {
+      const idx = i * (radial + 1) + j;
+      V.fromBufferAttribute(pos, idx).sub(P);
+      V.addScaledVector(R, -V.dot(R) * (1 - flat)).multiplyScalar(rad);
+      pos.setXYZ(idx, P.x + V.x, P.y + V.y, P.z + V.z);
+    }
+  }
+  g.computeVertexNormals();
+  const m = new THREE.Mesh(g, hairMat); m.castShadow = true; return m;
+}
+function hairLock(ph, thEnd, { r = 0.61, r0 = 0.085, r1 = 0.025, curl = 0.08, th0 = 0.12 } = {}) {
+  const pts = [];
+  for (let k = 0; k <= 5; k++) { const u = k / 5; pts.push(sph(lerp(th0, thEnd, u), ph, r + 0.022 * Math.sin(Math.PI * u))); }
+  pts.push(sph(thEnd + curl * 0.6, ph, r - curl * 0.5));
+  return lockMesh(pts, r0, r1);
+}
+const hairStyles = {};
+{ // baby tuft: one springy curl and two wisps
+  const g = new THREE.Group(), pts = [];
+  for (let k = 0; k <= 14; k++) { const a = k * 0.5, rr = 0.075 * (1 - k / 18); pts.push(new THREE.Vector3(Math.sin(a) * rr, 0.585 + k * 0.011, 0.04 + Math.cos(a) * rr)); }
+  g.add(lockMesh(pts, 0.035, 0.012, 1, 48));
+  for (const ph of [0.7, -0.5]) g.add(lockMesh([sph(0.08, ph, 0.585), sph(0.3, ph + 0.15, 0.6), sph(0.48, ph + 0.3, 0.6)], 0.022, 0.006, 1));
+  hairStyles.tuft = g;
+}
+{ // short bob with bangs
+  const g = new THREE.Group();
+  g.add(cap(0.585, 1.0)); g.add(cap(0.595, 1.8, 0.95));
+  for (let i = 0; i <= 12; i++) {
+    const ph = -0.9 + i * 0.15;
+    g.add(hairLock(ph, 0.96 + 0.07 * (rand(i) - 0.5) + 0.1 * (Math.abs(ph) / 0.9) ** 2, { r0: 0.075, r1: 0.022, curl: 0.06 }));
+  }
+  for (let i = 0; i < 24; i++) {
+    const ph = 0.95 + i * (Math.PI * 2 - 1.9) / 23;
+    g.add(hairLock(ph, 1.8 + 0.08 * (rand(i + 50) - 0.5), { r: 0.62, r0: 0.095, r1: 0.03, curl: 0.13 }));
+  }
+  hairStyles.bob = g;
+}
+{ // pigtails
+  const g = new THREE.Group();
+  g.add(cap(0.585, 1.0)); g.add(cap(0.595, 1.5, 1.1));
+  for (let i = 0; i <= 8; i++) g.add(hairLock(-0.7 + i * 0.175, 0.9 + 0.05 * rand(i + 9), { r0: 0.07, r1: 0.02, curl: 0.05 }));
+  const tieMat = phys('#ff6f91', { roughness: 0.4, clearcoat: 0.5 });
+  for (const s of [-1, 1]) {
+    const tie = sph(0.95, s * 1.75, 0.6), out = tie.clone().normalize(), up = new THREE.Vector3(0, 1, 0);
+    const t1 = mesh(new THREE.TorusGeometry(0.05, 0.022, 8, 20), tieMat); t1.position.copy(tie); t1.lookAt(tie.clone().multiplyScalar(2)); g.add(t1);
+    for (let k = 0; k < 7; k++) {
+      const j = new THREE.Vector3(rand(k * 3 + s) - 0.5, rand(k * 5 + s) - 0.5, rand(k * 7 + s) - 0.5).multiplyScalar(0.08);
+      g.add(lockMesh([
+        tie.clone(), tie.clone().addScaledVector(out, 0.1).addScaledVector(up, 0.06).add(j),
+        tie.clone().addScaledVector(out, 0.2).addScaledVector(up, -0.02).add(j),
+        tie.clone().addScaledVector(out, 0.23).addScaledVector(up, -0.17).add(j),
+        tie.clone().addScaledVector(out, 0.18).addScaledVector(up, -0.27).add(j.multiplyScalar(1.3)),
+      ], 0.06, 0.014, 0.8));
+    }
+  }
+  hairStyles.pigtails = g;
+}
+{ // curly: lots of little ringlets
+  const g = new THREE.Group();
+  g.add(cap(0.575, 1.1)); g.add(cap(0.58, 1.7, 1.0));
+  const curlGeo = new THREE.TorusGeometry(0.045, 0.026, 8, 16), n = 220;
+  for (let i = 0; i < n; i++) {
+    const y = 1 - (i / (n - 1)) * 2, r = Math.sqrt(1 - y * y), a = i * 2.39996, x = Math.cos(a) * r, z = Math.sin(a) * r;
+    if (!(y > 0.45 || (z < 0.15 && y > -0.2))) continue;
+    const m = mesh(curlGeo, hairMat); m.position.set(x, y, z).multiplyScalar(0.615);
+    m.rotation.set(rand(i) * Math.PI, rand(i + 7) * Math.PI, 0); g.add(m);
+  }
+  hairStyles.curly = g;
+}
+Object.values(hairStyles).forEach(g => hairRoot.add(g));
+
+const bow = new THREE.Group();
+{
+  const bm = phys('#ff5f8a', { roughness: 0.35, clearcoat: 0.6, sheen: 0.5 });
+  for (const s of [-1, 1]) {
+    const lobe = mesh(new THREE.SphereGeometry(0.085, 24, 16), bm); lobe.scale.set(1.15, 0.75, 0.45);
+    lobe.position.x = s * 0.085; lobe.rotation.z = s * 0.3; bow.add(lobe);
+    const tail = mesh(new THREE.CylinderGeometry(0.018, 0.034, 0.1, 10), bm); tail.position.set(s * 0.03, -0.07, 0); tail.rotation.z = s * 0.4; bow.add(tail);
+  }
+  bow.add(mesh(new THREE.SphereGeometry(0.04, 16, 12), bm));
+  const p = sph(0.72, 0.95, 0.655); bow.position.copy(p); bow.quaternion.setFromUnitVectors(faceUp, p.clone().normalize());
+  bow.rotateZ(-0.5); hairRoot.add(bow);
+}
+
+// ---------- character options ----------
+scene.traverse(o => { if (o.material && 'envMapIntensity' in o.material) o.material.envMapIntensity = 0.45; });
+const SKIN_HEX = ['#fde3d3', '#f3cba8', '#e2ab82', '#c58a5f', '#9c6340', '#71432a', '#4b2c1b'];
+const SKIN_STOPS = SKIN_HEX.map(c => new THREE.Color(c));
+function skinAt(v, out = new THREE.Color()) {
+  const x = clamp(v) * (SKIN_STOPS.length - 1), i = Math.min(SKIN_STOPS.length - 2, Math.floor(x));
+  return out.copy(SKIN_STOPS[i]).lerp(SKIN_STOPS[i + 1], x - i);
+}
+const HAIR_COLORS = ['#6b4a33', '#1c1514', '#d9aa5f', '#9a4a2c', '#3a2518'];
+const OUTFITS = {
+  onesie:   { top: '#ffd46e', belly: '#fff2cc', arms: 'top', legs: '#ffd46e', feet: 'skin' },
+  dress:    { top: '#f7a1bd', belly: '#ffd3e1', arms: 'skin', legs: 'skin', feet: '#ffffff', skirt: true, sash: true, sleeves: true },
+  overalls: { top: '#5f86c4', belly: '#86a9dd', arms: '#ff9e80', legs: '#5f86c4', feet: '#ffffff' },
+  tshirt:   { top: '#8fd3b3', belly: '#b5e6cf', arms: 'skin', legs: '#6c7fb3', feet: '#ffffff', sleeves: true },
+};
+
+// little SVG thumbnails for the option cards
+const HC = '#3a2a24';
+const face = (rx = 18, ry = 18, cheeks = 4) => `<ellipse cx="32" cy="36" rx="${rx}" ry="${ry}" fill="#f3cba8"/>
+  <circle cx="26" cy="36" r="2.2" fill="#2a1d22"/><circle cx="38" cy="36" r="2.2" fill="#2a1d22"/>
+  <circle cx="${32 - rx * 0.62}" cy="42" r="${cheeks}" fill="#ff9aa8" opacity=".7"/><circle cx="${32 + rx * 0.62}" cy="42" r="${cheeks}" fill="#ff9aa8" opacity=".7"/>
+  <path d="M29 44 q3 3 6 0" stroke="#9a3d45" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+const bowSvg = `<path d="M40 16 l8 -5 v10 z M40 16 l-8 -5 v10 z" fill="#ff5f8a"/><circle cx="40" cy="16" r="2.5" fill="#ff5f8a"/>`;
+const tuftSvg = `<path d="M32 19 q7 -7 1 -11" stroke="${HC}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+const topCap = `<path d="M14 33 C14 12 50 12 50 33 Q32 24 14 33 Z" fill="${HC}"/>`;
+const OPTIONS = {
+  gender: [
+    { id: 'unspecified', name: 'Not specified', icon: face() + tuftSvg },
+    { id: 'girl', name: 'Girl', icon: face() + tuftSvg + bowSvg },
+    { id: 'boy', name: 'Boy', icon: face() + tuftSvg + `<path d="M17 24 Q32 8 47 24 Z" fill="#7cc6ff"/><rect x="40" y="21" width="12" height="4" rx="2" fill="#7cc6ff"/>` },
+  ],
+  face: [
+    { id: 'round', name: 'Round', icon: face(), scale: [1, 1, 1], cheek: 1 },
+    { id: 'oval', name: 'Oval', icon: face(15, 21, 3), scale: [0.96, 1.05, 0.98], cheek: 0.85 },
+    { id: 'chubby', name: 'Chubby cheeks', icon: face(21, 17, 6), scale: [1.04, 0.97, 1.02], cheek: 1.3 },
+  ],
+  hair: [
+    { id: 'tuft', name: 'Baby tuft', icon: face() + tuftSvg },
+    { id: 'bob', name: 'Short hair', icon: `<rect x="12" y="24" width="40" height="30" rx="12" fill="${HC}"/>` + face() + topCap },
+    { id: 'pigtails', name: 'Pigtails', icon: `<circle cx="11" cy="30" r="8" fill="${HC}"/><circle cx="53" cy="30" r="8" fill="${HC}"/>` + face() + topCap },
+    { id: 'curly', name: 'Curly', icon: face() + [14, 20, 27, 34, 41, 47, 51, 13].map((x, i) => `<circle cx="${x + 1}" cy="${[28, 19, 14, 13, 15, 20, 28, 36][i]}" r="7" fill="${HC}"/>`).join('') },
+  ],
+  outfit: [
+    { id: 'onesie', name: 'Onesie', icon: `<circle cx="14" cy="24" r="7" fill="#ffd46e"/><circle cx="50" cy="24" r="7" fill="#ffd46e"/><rect x="16" y="14" width="32" height="40" rx="15" fill="#ffd46e"/><ellipse cx="32" cy="36" rx="9" ry="11" fill="#fff2cc"/>` },
+    { id: 'overalls', name: 'Overalls', icon: `<rect x="12" y="14" width="40" height="18" rx="8" fill="#ff9e80"/><rect x="18" y="24" width="28" height="30" rx="6" fill="#5f86c4"/><rect x="20" y="12" width="4" height="14" fill="#5f86c4"/><rect x="40" y="12" width="4" height="14" fill="#5f86c4"/><circle cx="24" cy="29" r="2" fill="#ffd46e"/><circle cx="40" cy="29" r="2" fill="#ffd46e"/>` },
+    { id: 'dress', name: 'Dress', icon: `<circle cx="20" cy="18" r="6" fill="#f7a1bd"/><circle cx="44" cy="18" r="6" fill="#f7a1bd"/><path d="M23 14 H41 L52 54 H12 Z" fill="#f7a1bd"/><rect x="21" y="27" width="22" height="4" rx="2" fill="#fff"/><path d="M12 54 H52" stroke="#fff" stroke-width="3"/>` },
+    { id: 'tshirt', name: 'T-shirt & pants', icon: `<path d="M18 12 H46 L54 22 L47 27 V36 H17 V27 L10 22 Z" fill="#8fd3b3"/><path d="M18 36 H46 L45 56 H35 L32 44 L29 56 H19 Z" fill="#6c7fb3"/>` },
+  ],
+};
+
+let faceParams = FACE_PARAMS.round;
+function applyLook(st) {
+  const O = OUTFITS[OPTIONS.outfit[st.outfit].id], F = OPTIONS.face[st.face];
+  skinAt(st.skin, skin.color);
+  hairMat.color.set(HAIR_COLORS[st.hairColor]);
+  const paint = (m, c) => c === 'skin' ? m.color.copy(skin.color) : m.color.set(c === 'top' ? O.top : c);
+  outfitTop.color.set(O.top); bellyMat.color.set(O.belly);
+  paint(outfitArms, O.arms); paint(outfitLegs, O.legs); paint(footMat, O.feet);
+  belly.visible = !O.skirt;
+  skirt.visible = hem.visible = !!O.skirt; sash.visible = !!O.sash;
+  sleeves.forEach(m => m.visible = !!O.sleeves);
+  faceParams = FACE_PARAMS[F.id];
+  headMesh.geometry = HEAD_GEOS[F.id];
+  head.scale.set(...F.scale);
+  for (const c of cheeks) {
+    const d = new THREE.Vector3(c.userData.side * 0.52, -0.3, 0.8).normalize();
+    c.position.copy(onFace(d.x, d.y, d.z, faceParams, -0.012));
+    c.quaternion.setFromUnitVectors(faceUp, d);
+    c.scale.set(F.cheek, 0.7 * F.cheek, 0.3);
+  }
+  hairMat.sheenColor.set(HAIR_COLORS[st.hairColor]).lerp(new THREE.Color('#ffffff'), 0.35);
+  const hairId = OPTIONS.hair[st.hair].id;
+  for (const [name, g] of Object.entries(hairStyles)) g.visible = name === hairId;
+  bow.visible = OPTIONS.gender[st.gender].id === 'girl';
+}
+
+const tears = [0, 1].map(() => {
+  const m = mesh(new THREE.SphereGeometry(0.035, 16, 12), phys('#a8dcff', { roughness: 0.05, transparent: true, opacity: 0, transmission: 0.3, clearcoat: 1, emissive: '#3b86c2', emissiveIntensity: 0.3 }), { cast: false });
+  head.add(m); return m;
+});
+
+// ---------- blocks ----------
+const S = 0.34;
+const blockColors = ['#ff8a8a', '#7cc6ff', '#9be38f'];
+const blocks = blockColors.map(c => { const b = mesh(new RoundedBoxGeometry(S, S, S, 4, 0.05), mat(c, { roughness: 0.5 }), { receive: true }); scene.add(b); return b; });
+const tower = [0, 1, 2].map(i => new THREE.Vector3(0.95, S / 2 + i * S, 0.45));
+const fallen = [
+  { p: new THREE.Vector3(1.05, S / 2, 0.52), rz: 0, ry: 0.35 },
+  { p: new THREE.Vector3(1.5, S / 2, 0.9), rz: -Math.PI / 2, ry: 0.5 },
+  { p: new THREE.Vector3(1.9, S / 2, 0.2), rz: -Math.PI, ry: -0.6 },
+];
+const RESTACK = 28.2;
+
+function poseBlock(i, t) {
+  const b = blocks[i], T = tower[i], F = fallen[i];
+  const rs = RESTACK + i * 1.3, back = smooth(rs, rs + 1.0, t);
+  if (t >= rs) {
+    b.position.set(lerp(F.p.x, T.x, back), lerp(F.p.y, T.y, back) + Math.sin(Math.PI * back) * 0.6, lerp(F.p.z, T.z, back));
+    b.rotation.set(0, lerp(F.ry, 0, back), lerp(F.rz, 0, back));
+    b.scale.setScalar(1 + 0.12 * Math.sin(Math.PI * smooth(rs + 0.9, rs + 1.3, t)));
+    return;
+  }
+  const fs = 6.0 + (2 - i) * 0.12, fe = fs + (i === 0 ? 0.5 : 0.85);
+  const e = clamp((t - fs) / (fe - fs));
+  const wob = i > 0 ? Math.sin((t - 5.6) * 28) * 0.05 * pulse(t, 5.6, fs + 0.05, 0.1) * i : 0;
+  const out = 1 - (1 - e) * (1 - e);
+  b.position.set(lerp(T.x, F.p.x, out), lerp(T.y, F.p.y, e * e) + Math.sin(Math.PI * e) * 0.12 * i, lerp(T.z, F.p.z, out));
+  b.rotation.set(0, lerp(0, F.ry, e), lerp(0, F.rz, e) + wob);
+  b.scale.setScalar(1);
+}
+
+// ---------- hearts ----------
+const heartCanvas = document.createElement('canvas'); heartCanvas.width = heartCanvas.height = 128;
+{
+  const g = heartCanvas.getContext('2d');
+  g.fillStyle = '#ff6f91';
+  g.beginPath(); g.moveTo(64, 112);
+  g.bezierCurveTo(8, 72, 12, 18, 44, 18); g.bezierCurveTo(56, 18, 64, 28, 64, 38);
+  g.bezierCurveTo(64, 28, 72, 18, 84, 18); g.bezierCurveTo(116, 18, 120, 72, 64, 112); g.fill();
+}
+const heartTex = new THREE.CanvasTexture(heartCanvas); heartTex.colorSpace = THREE.SRGBColorSpace;
+const hearts = Array.from({ length: 7 }, () => {
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: heartTex, transparent: true, depthWrite: false, opacity: 0 }));
+  scene.add(sp); return sp;
+});
+
+// ---------- UI ----------
+const $ = id => document.getElementById(id);
+const ui = {
+  chapter: $('chapter'), chapNum: $('chapNum'), chapText: $('chapText'), title: $('title'), bubble: $('bubble'),
+  options: $('options'), said: $('said'), saidText: $('saidText'), feedback: $('feedback'), fbQuote: $('fbQuote'),
+  fbYou: $('fbYou'), fbStyle: $('fbStyle'), fbWhy: $('fbWhy'), indicators: $('indicators'), retry: $('retry'), rewind: $('rewind'), endcard: $('endcard'),
+  optA: $('optA'), optB: $('optB'), optC: $('optC'), seeBtn: $('seeBtn'), finishBtn: $('finishBtn'), reflect: $('reflect'), rNext: $('rNext'), narr: $('narr'),
+  h1: $('h1'), sc0: $('sc0'), insight: $('insight'), saved: $('saved'), creator: $('creator'), startBtn: $('startBtn'),
+};
+// the baby's look, edited live by the player
+const live = { tab: 'gender', gender: 0, face: 0, hair: 0, outfit: 0, hairColor: 0, skin: 0.5 };
+let popAt = -99;   // wall-clock moment of the last edit (drives the little "pop")
+let W = 0;         // wall clock (idle motion), separate from the story clock
+
+const cr = {
+  tabs: [...document.querySelectorAll('.tab')], strip: $('strip'), viewport: $('viewport'), dots: $('dots'),
+  optName: $('optName'), hairColors: $('hairColors'), swatches: $('swatches'), secCarousel: $('secCarousel'),
+  secSkin: $('secSkin'), track: $('skinTrack'), knob: $('skinKnob'), arrL: $('arrL'), arrR: $('arrR'),
+};
+cr.swatches.innerHTML = HAIR_COLORS.map((c, i) => `<button class="swatch" data-i="${i}" style="background:${c}"></button>`).join('');
+cr.track.style.background = `linear-gradient(90deg, ${SKIN_HEX.join(', ')})`;
+let builtCat = '';
+function renderCreator(st) {
+  cr.tabs.forEach(b => b.classList.toggle('active', b.dataset.cat === st.tab));
+  const isSkin = st.tab === 'skin';
+  cr.secCarousel.style.display = isSkin ? 'none' : '';
+  cr.secSkin.style.display = isSkin ? '' : 'none';
+  cr.knob.style.left = (st.skin * 100) + '%';
+  cr.knob.style.background = '#' + skinAt(st.skin).getHexString();
+  if (isSkin) return;
+  const opts = OPTIONS[st.tab], idx = st[st.tab];
+  const rebuilt = builtCat !== st.tab;
+  if (rebuilt) {
+    cr.strip.innerHTML = opts.map(o => `<div class="card2"><svg viewBox="0 0 64 64">${o.icon}</svg></div>`).join('');
+    cr.dots.innerHTML = opts.map(() => '<i></i>').join('');
+    builtCat = st.tab;
+    cr.strip.style.transition = 'none';
+  }
+  [...cr.strip.children].forEach((el, i) => el.classList.toggle('sel', i === idx));
+  [...cr.dots.children].forEach((el, i) => el.classList.toggle('on', i === idx));
+  const cardW = cr.strip.children[0].offsetWidth + 10;
+  cr.strip.style.transform = `translateX(${cr.viewport.clientWidth / 2 - idx * cardW - (cardW - 10) / 2}px)`;
+  if (rebuilt) { cr.strip.offsetWidth; cr.strip.style.transition = ''; }
+  cr.optName.textContent = opts[idx].name;
+  cr.hairColors.style.display = st.tab === 'hair' ? '' : 'none';
+  [...cr.swatches.children].forEach((el, i) => el.classList.toggle('sel', i === st.hairColor));
+}
+const show = (el, on) => { el.classList.toggle('show', on); el.inert = !on; el.setAttribute('aria-hidden', String(!on)); };
+
+// development check-in: common areas used to describe healthy early development
+const INDICATORS = [
+  { name: 'Emotional security', domain: 'Attachment', harsh: -30, dis: -20, warm: +25 },
+  { name: 'Emotion regulation', domain: 'Self-regulation · calming down', harsh: -26, dis: -18, warm: +18 },
+  { name: 'Self-worth', domain: 'Self-concept', harsh: -28, dis: -22, warm: +22 },
+  { name: 'Persistence & curiosity', domain: 'Approaches to learning', harsh: -35, dis: -24, warm: +30 },
+  { name: 'Asking for help', domain: 'Social-communication', harsh: -32, dis: -30, warm: +24 },
+  { name: 'Problem-solving', domain: 'Cognitive · learning from mistakes', harsh: -18, dis: -8, warm: +28 },
+  { name: 'Parent–child trust', domain: 'Relationship', harsh: -24, dis: -20, warm: +26 },
+];
+const BASE = 55;
+// radar chart comparing both responses
+const rSteps = [...document.querySelectorAll('.rstep')], rTabs = [...document.querySelectorAll('.steps span')];
+const RADAR_LABELS = ['Security', 'Regulation', 'Self-worth', 'Persistence', 'Asking for help', 'Problem-solving', 'Trust'];
+const radarXY = (i, r) => { const a = -Math.PI / 2 + i / INDICATORS.length * Math.PI * 2; return [Math.cos(a) * r, Math.sin(a) * r]; };
+const radarPts = (key, k) => INDICATORS.map((d, i) => radarXY(i, (BASE + d[key]) * k).join(',')).join(' ');
+const radarSvg = document.getElementById('radar');
+radarSvg.innerHTML = [25, 50, 75, 100].map(r => `<polygon points="${INDICATORS.map((_, i) => radarXY(i, r).join(',')).join(' ')}" fill="none" stroke="#eadede" stroke-width="1"/>`).join('')
+  + INDICATORS.map((_, i) => { const [x, y] = radarXY(i, 100); return `<line x1="0" y1="0" x2="${x}" y2="${y}" stroke="#eadede"/>`; }).join('')
+  + '<polygon id="radarBad" fill="rgba(226,103,127,.22)" stroke="#e2677f" stroke-width="2.5" stroke-linejoin="round"/>'
+  + '<polygon id="radarDis" fill="rgba(224,160,48,.18)" stroke="#e0a030" stroke-width="2.5" stroke-linejoin="round"/>'
+  + '<polygon id="radarGood" fill="rgba(91,191,138,.22)" stroke="#5bbf8a" stroke-width="2.5" stroke-linejoin="round"/>'
+  + RADAR_LABELS.map((l, i) => { const [x, y] = radarXY(i, 122); return `<text x="${x}" y="${y + 4}" text-anchor="${Math.abs(x) < 10 ? 'middle' : x > 0 ? 'start' : 'end'}">${l}</text>`; }).join('');
+const radarDis = document.getElementById('radarDis'), radarBad = document.getElementById('radarBad'), radarGood = document.getElementById('radarGood');
+ui.indicators.innerHTML = INDICATORS.map(d => `<div class="ind"><div class="nm">${d.name}<span class="dm">${d.domain}</span></div>
+  <div class="bar"><i></i></div><div class="dl"></div></div>`).join('');
+const indRows = [...ui.indicators.children].map(r => ({ bar: r.querySelector('i'), dl: r.querySelector('.dl') }));
+const RESPONSES = {
+  harsh: {
+    style: 'Critical', short: 'Critical', color: 'var(--bad)', hex: '#e2677f',
+    child: '“I did something bad. Maybe I shouldn\'t ask for help next time.”',
+    why: '<b>Why:</b> Sharp words right after an accident can trigger a stress response. If it happens often, children may learn to hide mistakes and give up sooner, instead of practicing how to fix things.',
+  },
+  dis: {
+    style: 'Dismissive · hands-off', short: 'Dismissive', color: '#e0a030', hex: '#e0a030',
+    child: '“I guess I\'m on my own. Nobody\'s going to help.”',
+    why: '<b>Why:</b> Staying calm helps, but brushing off a request for help can leave a child feeling unseen. Over time they may stop asking, or miss the guidance they need to solve the problem.',
+  },
+  warm: {
+    style: 'Warm · collaborative', short: 'Warm', color: 'var(--good)', hex: '#5bbf8a',
+    child: '“Mistakes are okay. We can fix it together.”',
+    why: '<b>Why:</b> Staying calm and fixing it together is a “serve-and-return” moment. It helps the child calm down, shows how to solve the problem, and tells them it\'s safe to try again.',
+  },
+};
+const EXAMPLE = { harsh: '“Stop making a mess!”', dis: '“You\'re fine. Do it yourself.”', warm: '“Oops! Let\'s build it again together.”' };
+// prototype "write your own": a keyword reader, not real language understanding
+const KW = {
+  harsh: /\b(stop|mess|stupid|dumb|bad|hurry|clumsy|careless|told you|shut up|ugh|hate|naughty|wrong with you|annoying|knock it off|quit|again\?)\b|!{2,}/gi,
+  dis: /\b(fine|yourself|figure it out|not now|busy|later|whatever|deal with it|your problem|don'?t care|go away|no big deal|on your own|handle it)\b/gi,
+  warm: /\b(together|it'?s ok(ay)?|okay|oops|let'?s|help you|try again|love|proud|here for you|hug|sorry|i'?m here|good try|build it)\b/gi,
+};
+function classify(text) {
+  const n = k => (text.match(KW[k]) || []).length, h = n('harsh'), d = n('dis'), w = n('warm');
+  if (h > 0 && h >= w) return { style: 'harsh' };
+  if (w > 0) return { style: 'warm' };
+  if (d > 0) return { style: 'dis' };
+  return { style: 'dis', unclear: true };
+}
+
+
+// ---------- interactive story state machine ----------
+// The animation is a pure function of a "story clock" s. Instead of letting it run on a fixed
+// timeline, the plan below plays it forward, parks it at decision points, or jumps between segments.
+const G = { phase: 'title', chosen: null, tried: { harsh: false, dis: false, warm: false }, pickAt: 0, fbAt: 0, reflAt: 0,
+  rewind: false, habit: -1, rs: 0, rsAt: 0, scen: -1, rcam: 0 };
+let s = -INTRO, plan = [['play', -INTRO + 3.0]];
+const run = (...steps) => { plan = steps; };
+function stepPlan(dt) {
+  while (plan.length) {
+    const st = plan[0];
+    if (st[0] === 'jump') { s = st[1]; plan.shift(); }
+    else if (st[0] === 'do') { plan.shift(); st[1](); }
+    else if (st[0] === 'wait') { st[1] -= dt; if (st[1] > 0) return; plan.shift(); dt = 0; }
+    else { s += dt; if (s < st[1]) return; s = st[1]; plan.shift(); dt = 0; }   // play
+  }
+}
+const CREATE_AT = -INTRO + 6.5, ASK_AT = 11.6;
+
+function resetWrite() { $('writeInput').value = ''; $('writeBox').classList.remove('on'); $('writeBtn').lastChild.textContent = 'Write your own…'; }
+function resetRun() { G.chosen = null; G.tried = { harsh: false, dis: false, warm: false }; G.rewind = false; G.rs = 0; G.habit = -1; G.scen = -1; resetWrite(); }
+function startStory() { G.phase = 'intro'; run(['jump', -1.6], ['play', ASK_AT], ['do', () => { G.phase = 'choose'; }]); }
+function pick(style, text, idx, unclear = false) {
+  if (G.phase !== 'choose') return;
+  G.chosen = { style, text, idx, unclear }; G.tried[style] = true; G.pickAt = W; G.phase = 'react';
+  $('writeBox').classList.remove('on');
+  if (idx === 3) $('writeBtn').lastChild.textContent = text;
+  run(...(style === 'warm' ? [['jump', 25.2], ['play', 34.5]] : [['jump', 13.9], ['play', 20.0]]));
+}
+function showFeedback() { if (G.phase === 'react') { G.phase = 'feedback'; G.fbAt = W; } }
+function retry() {
+  if (G.phase !== 'feedback') return;
+  G.phase = 'rewind'; G.rewind = true;
+  run(['wait', 0.7], ['jump', ASK_AT], ['wait', 0.9], ['do', () => { G.rewind = false; G.chosen = null; resetWrite(); G.phase = 'choose'; }]);
+}
+function buildLegend() {
+  $('legend').innerHTML = ['harsh', 'dis', 'warm'].map(k => {
+    const r = RESPONSES[k], tried = G.tried[k];
+    return `<span class="${tried ? 'tried' : 'untried'}"><i style="background:${r.hex}"></i>${r.short}${tried ? ' · you tried this' : ' · not tried'}</span>`;
+  }).join('');
+  for (const [el, k] of [[radarBad, 'harsh'], [radarDis, 'dis'], [radarGood, 'warm']]) {
+    el.setAttribute('stroke-dasharray', G.tried[k] ? '' : '5 4'); el.style.opacity = G.tried[k] ? 1 : 0.55;
+  }
+}
+function finish() {
+  if (G.phase !== 'feedback') return;
+  G.phase = 'reflect'; G.reflAt = W; G.rs = 0; G.habit = -1; G.scen = -1; buildLegend();
+  run(...(G.chosen.style === 'warm' ? [['play', 37.5]] : [['play', 23.2], ['jump', 25.2]]));
+}
+
+// creator controls
+function step(dir) { const n = OPTIONS[live.tab].length; live[live.tab] = (live[live.tab] + dir + n) % n; popAt = W; }
+cr.arrL.onclick = () => step(-1); cr.arrR.onclick = () => step(1);
+cr.tabs.forEach(b => b.onclick = () => { live.tab = b.dataset.cat; });
+cr.strip.onclick = e => {
+  const i = [...cr.strip.children].indexOf(e.target.closest('.card2'));
+  if (i >= 0 && i !== live[live.tab]) { live[live.tab] = i; popAt = W; }
+};
+cr.swatches.onclick = e => { const b = e.target.closest('.swatch'); if (b) { live.hairColor = +b.dataset.i; popAt = W; } };
+const skinFrom = e => { const r = cr.track.getBoundingClientRect(); live.skin = clamp((e.clientX - r.left) / r.width); };
+cr.track.onpointerdown = e => { cr.track.setPointerCapture(e.pointerId); skinFrom(e); };
+cr.track.onpointermove = e => { if (cr.track.hasPointerCapture(e.pointerId)) skinFrom(e); };
+$('dice').onclick = () => {
+  for (const k of ['gender', 'face', 'hair', 'outfit']) live[k] = Math.floor(Math.random() * OPTIONS[k].length);
+  live.hairColor = Math.floor(Math.random() * HAIR_COLORS.length); live.skin = Math.random(); popAt = W;
+};
+$('beginBtn').onclick = () => { if (G.phase === 'title') { G.phase = 'create'; run(['play', CREATE_AT]); } };
+ui.startBtn.onclick = () => { if (G.phase === 'create') startStory(); };
+// the moment
+ui.optA.onclick = () => pick('warm', EXAMPLE.warm, 0);
+ui.optB.onclick = () => pick('harsh', EXAMPLE.harsh, 1);
+ui.optC.onclick = () => pick('dis', EXAMPLE.dis, 2);
+$('writeBtn').onclick = () => { if (G.phase === 'choose') { $('writeBox').classList.add('on'); $('writeInput').focus(); } };
+const sendWrite = () => {
+  const v = $('writeInput').value.trim(); if (!v) return;
+  const c = classify(v); pick(c.style, '“' + v + '”', 3, !!c.unclear);
+};
+$('writeSend').onclick = sendWrite;
+$('writeInput').onkeydown = e => { if (e.key === 'Enter') sendWrite(); e.stopPropagation(); };
+ui.seeBtn.onclick = showFeedback; ui.retry.onclick = retry; ui.finishBtn.onclick = finish;
+// reflection
+ui.rNext.onclick = () => { if (G.rs < 3) { G.rs++; G.rsAt = W; } };
+rTabs.forEach((el, i) => { el.onclick = () => { if (i <= G.rs) { G.rs = i; G.rsAt = W; } }; });
+['h0', 'h1', 'h2'].forEach((id, i) => { $(id).onclick = () => { G.habit = i; }; });
+['sc0', 'sc1', 'sc2'].forEach((id, i) => { $(id).onclick = () => { G.scen = i; }; });
+$('replayBtn').onclick = () => { resetRun(); startStory(); };
+$('redesignBtn').onclick = () => { resetRun(); G.phase = 'create'; run(['jump', CREATE_AT]); };
+$('restartBtn').onclick = () => {
+  resetRun(); Object.assign(live, { tab: 'gender', gender: 0, face: 0, hair: 0, outfit: 0, hairColor: 0, skin: 0.5 });
+  G.phase = 'title'; run(['jump', -INTRO], ['play', -INTRO + 3.0]);
+};
+const HABIT_TEXT = [
+  'Sharp words tend to come out when we\'re tired, rushed or worried about mess. That\'s very common — and noticing it is the first step.',
+  'Most of us land somewhere in between, and it shifts with the day. Knowing your triggers helps you catch the moment before it happens.',
+  'You already know the warm response. The hard part is reaching for it under stress, so it\'s worth practicing the pause.',
+];
+const SCEN_NAMES = ['Spilled milk', 'Bedtime', 'Sharing'];
+const CHAPTERS = { create: [1, 'Design your baby'], intro: [2, 'An everyday moment'], choose: [3, 'Choose a response'], react: [3, 'Choose a response'],
+  feedback: [4, 'A possible reaction'], rewind: [4, 'Try again'], reflect: [5, 'Reflect'] };
+const NARR_INTRO = [[2.0, 5.9, 'Your baby is playing with a block tower…'], [6.1, 7.8, 'Oops — the tower falls over!'], [7.9, 11.4, 'Your baby turns to you for help.']];
+const NARR_WARM = [[28.1, 31.6, 'You rebuild the tower together.'], [31.7, 33.6, 'All done — yay!']];
+
+function updateUI(t, W) {
+  const ph = G.phase, ch = G.chosen;
+  show(ui.title, ph === 'title');
+  show(ui.chapter, ph !== 'title');
+  const c = CHAPTERS[ph]; if (c) { ui.chapNum.textContent = c[0]; ui.chapText.textContent = c[1]; }
+  show(ui.creator, ph === 'create');
+  if (ph === 'create') renderCreator(live);
+
+  show(ui.bubble, (ph === 'intro' && t > 7.9) || ph === 'choose');
+  show(ui.options, ph === 'choose' || ph === 'react');
+  ui.seeBtn.classList.toggle('ready', ph === 'react' && W - G.pickAt > 1.3);
+  [ui.optA, ui.optB, ui.optC, $('writeBtn')].forEach((o, i) => {
+    const on = ch && ph !== 'choose' && ch.idx === i;
+    o.classList.toggle('picked', !!on);
+    o.classList.toggle('dim', !!ch && ph !== 'choose' && !on);
+    o.classList.toggle('locked', ph !== 'choose');
+  });
+  show(ui.said, ph === 'react' && W - G.pickAt < 2.4);
+  if (ch) ui.saidText.textContent = ch.text;
+
+  show(ui.feedback, ph === 'feedback');
+  if (ph === 'feedback') {
+    const R = RESPONSES[ch.style], f = W - G.fbAt;
+    ui.fbYou.textContent = ch.text; ui.fbStyle.textContent = ch.unclear ? 'Unclear · read as neutral' : R.style; ui.fbStyle.style.background = R.color;
+    ui.fbQuote.textContent = ch.unclear ? '“…I\'m not sure what that meant.”' : R.child; ui.fbWhy.innerHTML = R.why;
+    INDICATORS.forEach((d, i) => {
+      const delta = d[ch.style], k = smooth(0.4 + i * 0.22, 1.4 + i * 0.22, f);
+      indRows[i].bar.style.width = (BASE + delta * k) + '%';
+      indRows[i].bar.style.background = k > 0 ? R.color : '#c9bdbd';
+      indRows[i].dl.textContent = k > 0.05 ? `${delta > 0 ? '▲' : '▼'} ${Math.round(Math.abs(delta) * k)}` : '';
+      indRows[i].dl.style.color = R.color;
+    });
+  }
+  show(ui.rewind, G.rewind);
+
+  show(ui.reflect, ph === 'reflect');
+  if (ph === 'reflect') {
+    const rs = G.rs, f = W - G.reflAt;
+    rSteps.forEach((el, i) => el.classList.toggle('on', i === rs));
+    rTabs.forEach((el, i) => { el.classList.toggle('on', i === rs); el.classList.toggle('done', i < rs); });
+    ui.rNext.style.visibility = rs === 3 ? 'hidden' : 'visible';
+    radarBad.setAttribute('points', radarPts('harsh', smooth(0.3, 1.9, f)));
+    radarDis.setAttribute('points', radarPts('dis', smooth(0.5, 2.1, f)));
+    radarGood.setAttribute('points', radarPts('warm', smooth(0.7, 2.3, f)));
+    ['h0', 'h1', 'h2'].forEach((id, i) => { $(id).classList.toggle('picked', G.habit === i); $(id).classList.toggle('dim', G.habit >= 0 && G.habit !== i); });
+    if (G.habit >= 0) ui.insight.innerHTML = '<b>Your pattern</b>' + HABIT_TEXT[G.habit];
+    ui.insight.classList.toggle('on', G.habit >= 0);
+    [...document.querySelectorAll('.plan li')].forEach((li, i) => li.classList.toggle('on', rs === 2 && W - G.rsAt > 0.3 + i * 0.7));
+    ['sc0', 'sc1', 'sc2'].forEach((id, i) => { $(id).classList.toggle('picked', G.scen === i); });
+    if (G.scen >= 0) $('savedText').textContent = `“${SCEN_NAMES[G.scen]}” is on your practice list — it isn\'t built yet in this prototype, so you can replay the tower moment instead.`;
+    ui.saved.classList.toggle('on', G.scen >= 0);
+  }
+
+  const list = ph === 'intro' ? NARR_INTRO : (ch && ch.style === 'warm' && (ph === 'react' || ph === 'feedback')) ? NARR_WARM : [];
+  const nar = list.find(([a, b]) => within(t, a, b));
+  if (nar) ui.narr.textContent = nar[2];
+  show(ui.narr, !!nar);
+}
+
+// ---------- animation ----------
+const tmp = new THREE.Vector3(), headPos = new THREE.Vector3(), gaze = new THREE.Vector3(), v2 = new THREE.Vector3();
+const camStart = new THREE.Vector3(0.9, 2.3, 7.4), camBase = new THREE.Vector3(0.9, 1.6, 5.0), camClose = new THREE.Vector3(0.7, 1.5, 3.9);
+const camCreator = new THREE.Vector3(0.85, 1.45, 5.0), tgtCreator = new THREE.Vector3(0.85, 0.8, 0);
+const tgtBase = new THREE.Vector3(1.0, 0.85, 0.3), tgtClose = new THREE.Vector3(0.65, 1.1, 0.2);
+const camReflect = new THREE.Vector3(1.55, 1.45, 5.3), tgtReflect = new THREE.Vector3(1.55, 0.85, 0.2);
+const towerTop = new THREE.Vector3(0.95, 0.95, 0.45), sadLook = new THREE.Vector3(-0.9, 0.55, 1.6), panelLook = new THREE.Vector3(3, 1.2, 1.5);
+
+// smooth organic wobble (sum of incommensurate sines)
+const wob = (t, s) => Math.sin(t * 1.31 + s * 12.9) * 0.5 + Math.sin(t * 2.23 + s * 4.1) * 0.3 + Math.sin(t * 3.77 + s * 7.3) * 0.2;
+// damped springs give overshoot, lag and settle — the "alive" part
+const springs = {};
+function spring(name, target, dt, k = 110, d = 11) {
+  const s = springs[name] ??= { x: target, v: 0 };
+  const steps = Math.max(1, Math.ceil(dt * 240)), h = dt / steps;
+  for (let i = 0; i < steps; i++) { s.v += (k * (target - s.x) - d * s.v) * h; s.x += s.v * h; }
+  return s.x;
+}
+// irregular blinks, sometimes doubled
+function blinkAmount(t) {
+  const P = 3.1, base = Math.floor(t / P);
+  let c = 0;
+  for (const b of [base - 1, base, base + 1]) {
+    const r = rand(b + 500), at = b * P + r * 2.2;
+    for (const off of r > 0.7 ? [0, 0.3] : [0]) {
+      const x = t - at - off;
+      if (x > -0.07 && x < 0.16) c = Math.max(c, x < 0 ? 1 + x / 0.07 : 1 - x / 0.16);
+    }
+  }
+  return clamp(c);
+}
+
+function update(t, W, dt) {
+  const worried = pulse(t, 7.3, 15.0, 0.5) + pulse(t, 23.0, 26.4, 0.5);
+  const sadW = smooth(14.35, 15.1, t) * (1 - smooth(22.6, 23.2, t));
+  const happyW = smooth(26.1, 26.8, t) * (1 - 0.55 * smooth(38.6, 39.8, t)) * (1 - smooth(STORY_END - 1.2, STORY_END - 0.2, t));
+  const lookTower = pulse(t, 3.2, 7.6, 0.5);
+  const watchRestack = pulse(t, 28.0, 32.2, 0.5);
+  const surprise = pulse(t, 6.2, 6.95, 0.2);
+  const ohNo = pulse(t, 6.6, 8.0, 0.3);
+  const talk = pulse(t, 8.0, 10.9, 0.2) + pulse(t, 23.5, 25.0, 0.2);
+  const sob = sadW * pulse(t, 15.0, 22.5, 0.6);
+  const cheer = happyW * pulse(t, 31.7, 33.8, 0.3);
+  const hello = pulse(t, -INTRO + 3.4, -INTRO + 6.2, 0.4);
+  const reach = smooth(3.8, 5.2, t) * (1 - smooth(6.0, 6.7, t)), tap = pulse(t, 5.4, 5.9, 0.2);
+
+  // camera
+  // The reaction zoom is gentle so the child's head and the speech bubble stay in frame.
+  const close = (sadW * 0.9 + pulse(t, 26.4, 28.2, 0.5) * 0.55) * 0.5;
+  const narrow = renderer.domElement.clientWidth <= 700;
+  G.rcam += ((G.phase === 'reflect' ? 1 : 0) - G.rcam) * (1 - Math.exp(-dt * 2.2));
+  const reflectCam = G.rcam;
+  if (t < 0) {
+    camera.position.lerpVectors(camStart, camCreator, smooth(-INTRO, -INTRO + 4, t));
+    tmp.copy(tgtCreator);
+  } else {
+    const k = smooth(0, 3.5, t);
+    camera.position.lerpVectors(camCreator, camBase, k).lerp(camClose, close);
+    tmp.lerpVectors(tgtCreator, tgtBase, k).lerp(tgtClose, close);
+  }
+  camera.position.lerp(camReflect, reflectCam); tmp.lerp(tgtReflect, reflectCam);
+  camera.position.x += Math.sin(W * 0.35) * 0.12;
+  camera.position.y += Math.sin(W * 0.27) * 0.04;
+  // Phones have no side bubble, so center the child and step back to keep the whole head visible.
+  if (narrow && G.phase !== 'title') { camera.position.z += 0.9; camera.position.y += 0.15; tmp.y += 0.1; }
+  else if (G.phase !== 'title') tmp.x -= 0.65;
+  camera.lookAt(tmp);
+
+  // lighting mood
+  key.intensity = lerp(2.2, 0.9, sadW) + 0.3 * happyW;
+  hemi.color.copy(hemiWarm).lerp(hemiCool, sadW);
+  scene.background.copy(bgWarm).lerp(bgCool, sadW * 0.8);
+  scene.fog.color.copy(scene.background);
+
+  applyLook(live);
+  const pop = pulse(W, popAt, popAt + 0.5, 0.2);
+  const turntable = smooth(-INTRO + 3, -INTRO + 5, t) * (1 - smooth(-1.5, 0, t));
+
+  // body: breathing, hops, lean, sway
+  const br = Math.sin(W * 2.3) + sob * 0.8 * Math.sin(W * 11);
+  torso.scale.set(1 + 0.012 * br, 1 + 0.018 * br, 0.9 * (1 + 0.014 * br));
+  const hop = Math.abs(Math.sin(W * 6.5)) * 0.06 * happyW * (1 - watchRestack * 0.6) * (1 - cheer * 0.5)
+    + 0.09 * surprise + cheer * Math.abs(Math.sin(W * 8)) * 0.06 + pop * 0.05;
+  bodyPivot.position.y = spring('hop', hop, dt, 320, 16);
+  const vel = springs.hop.v;
+  bodyPivot.scale.set(1 - 0.03 * clamp(vel, -1, 1), 1 + 0.05 * clamp(vel, -1, 1), 1 - 0.03 * clamp(vel, -1, 1));   // squash & stretch
+  bodyPivot.rotation.x = spring('lean', 0.14 * reach + 0.1 * sadW + 0.06 * worried + wob(W * 0.4, 1) * 0.02, dt, 60, 12);
+  bodyPivot.rotation.z = spring('sway', wob(W * 0.5, 2) * 0.035 + happyW * Math.sin(W * 4) * 0.05 * (1 - watchRestack), dt, 60, 12);
+  baby.rotation.y = spring('turn', -0.35 * sadW + 0.2 * watchRestack * happyW + Math.sin(W * 0.9) * 0.45 * turntable, dt, 40, 11);
+
+  // where is she looking?
+  scene.updateMatrixWorld();
+  head.getWorldPosition(headPos);
+  const sac = Math.floor(W / 1.1);
+  gaze.copy(camera.position);
+  gaze.x += (rand(sac) - 0.5) * 0.5; gaze.y += (rand(sac + 99) - 0.5) * 0.3;
+  gaze.lerp(towerTop, lookTower);
+  gaze.lerp(blocks[2].position, pulse(t, 6.0, 7.2, 0.15));
+  gaze.lerp(sadLook, sadW * (0.7 + 0.3 * Math.sin(W * 0.7)));
+  if (watchRestack > 0) gaze.lerp(blocks[clamp(Math.floor((t - RESTACK) / 1.3), 0, 2)].position, watchRestack * happyW * 0.9);
+  if (t < 0) gaze.lerp(panelLook, 0.6 * pulse(((W % 5) + 5) % 5, 2.5, 4.0, 0.3) * (1 - hello));
+
+  // head follows the eyes with a soft lag
+  v2.copy(gaze); bodyPivot.worldToLocal(v2); v2.sub(head.position);
+  const yaw = Math.atan2(v2.x, v2.z), pitch = -Math.atan2(v2.y, Math.hypot(v2.x, v2.z));
+  const hx = clamp(pitch * 0.4, -0.25, 0.2) + 0.14 * sadW + 0.1 * ohNo - 0.1 * cheer
+    + Math.sin(W * 12) * 0.05 * happyW * (1 - watchRestack) + talk * Math.sin(W * 7) * 0.04;
+  const hy = clamp(yaw * 0.55, -0.6, 0.6);
+  const hz = 0.14 * worried + 0.12 * sadW + wob(W * 0.6, 3) * 0.05 + Math.sin(W * 5) * 0.1 * happyW * (1 - watchRestack) + 0.12 * hello * Math.sin(W * 3);
+  head.rotation.set(spring('hx', hx, dt, 70, 10), spring('hy', hy, dt, 60, 10), spring('hz', hz, dt, 70, 10));
+
+  // eyes, lids, brows
+  scene.updateMatrixWorld();
+  const blink = blinkAmount(W);
+  for (const s of [-1, 1]) {
+    const E = eyes[s];
+    v2.copy(gaze); E.socket.worldToLocal(v2);
+    const ey = clamp(Math.atan2(v2.x, v2.z), -0.5, 0.5), ex = clamp(-Math.atan2(v2.y, Math.hypot(v2.x, v2.z)), -0.35, 0.4);
+    E.ball.rotation.set(spring('ex' + s, ex, dt, 500, 34), spring('ey' + s, ey, dt, 500, 34), 0);
+    const squint = happyW * (1 - watchRestack) * (0.75 + 0.25 * Math.abs(Math.sin(W * 8)));
+    let up = -1.0;
+    up = lerp(up, -1.35, surprise); up = lerp(up, -0.85, worried); up = lerp(up, -0.45, sadW); up = lerp(up, -1.05, squint);
+    up = lerp(up, -1.2, happyW * watchRestack);   // wide, curious eyes while watching
+    up += E.ball.rotation.x * 0.35;
+    E.upper.rotation.x = lerp(up, 1.5, blink);
+    let lo = 1.25; lo = lerp(lo, 0.25, squint); lo = lerp(lo, 0.85, sob * 0.6);
+    E.lower.rotation.x = lo;
+    brows[s].rotation.z = -s * (0.06 + 0.3 * worried + 0.5 * sadW + 0.12 * happyW);
+    brows[s].position.y = brows[s].userData.y + 0.035 * surprise + 0.035 * happyW - 0.01 * sadW;
+  }
+
+  // mouth: talk, gasp, cry, laugh
+  let curve = -0.55, open = 0, wide = 1;
+  curve = lerp(curve, 0.15, worried); curve = lerp(curve, 0.9, sadW); curve = lerp(curve, -1.2, happyW);
+  open += talk * (0.2 + 0.3 * Math.abs(Math.sin(W * 9.3)) * Math.abs(Math.sin(W * 3.1 + 1)));
+  const gasp = Math.min(1, surprise + ohNo * 0.6);
+  open = lerp(open, 0.6, gasp); wide = lerp(wide, 0.65, gasp);
+  open = lerp(open, 0.35 + 0.15 * Math.sin(W * 19), sob);
+  open = lerp(open, 0.5 + 0.28 * Math.abs(Math.sin(W * 8)), happyW * (1 - watchRestack * 0.3));
+  lipArc.visible = open < 0.18;
+  lipArc.scale.set(1 + 0.2 * happyW, Math.abs(curve) < 0.15 ? (curve < 0 ? -0.15 : 0.15) : curve, 1);
+  const w = (0.075 + 0.025 * happyW + 0.015 * sob) * wide;
+  cavity.visible = tongue.visible = open >= 0.02;
+  cavity.scale.set(w, 0.085 * open + 0.001, 0.02);
+  cavity.position.y = (curve < 0 ? -0.012 : 0.006) * Math.abs(curve);
+  tongue.scale.set(w * 0.6, 0.04 * open + 0.001, 0.021);
+  tongue.position.set(0, cavity.position.y - 0.045 * open, 0.002);
+  for (const c of cheeks) { c.position.y += 0.022 * happyW; c.scale.multiplyScalar(1 + 0.18 * happyW + 0.1 * sob); }
+
+  // arms: every pose is a target; springs make the motion overshoot and settle
+  const clapOpen = 0.5 + 0.5 * Math.sin(W * 15);
+  for (const s of [-1, 1]) {
+    const n = wob(W * 0.9, s * 3);
+    let sx = -0.35 + n * 0.05, sz = 0.28, el = -0.95 + n * 0.08;
+    const L = (wt, x, z, e) => { sx = lerp(sx, x, wt); sz = lerp(sz, z, wt); el = lerp(el, e, wt); };
+    if (s > 0) L(hello, -0.3, 2.3, -0.5 + 0.45 * Math.sin(W * 11));          // waves hi
+    L(worried * (1 - ohNo), -0.95, -0.28, -1.1);                              // hands together, asking
+    if (s > 0) L(reach, -1.15 - 0.2 * tap, 0.75, -0.15);                      // reaches for the tower
+    L(surprise, -0.8, 1.2, -0.9);                                             // startle
+    L(ohNo, -1.5, -0.3, -2.15);                                               // hands to mouth
+    if (s > 0) L(sob, -1.7 + 0.12 * Math.sin(W * 9), 0.05, -2.2);             // rubs her eye
+    else L(sob, -0.2, 0.12, -0.45);                                           // other arm limp
+    const clapW = happyW * (1 - watchRestack) * (1 - cheer);
+    L(clapW, -1.15, -0.38 + 0.5 * clapOpen, -0.9);                            // claps
+    const pointW = happyW * watchRestack * (1 - cheer);
+    if (s > 0) L(pointW, -1.2 + 0.1 * Math.sin(W * 6), 0.85, -0.25);          // points at the blocks
+    else L(pointW, -0.9, 0.45 + 0.2 * Math.sin(W * 7), -1.1);
+    L(cheer, -0.3, 2.35 + 0.15 * Math.sin(W * 12 + s), -0.35);                // "yay!"
+    const A = arms[s];
+    A.shoulder.rotation.set(spring('sx' + s, sx, dt, 90, 11), 0, s * spring('sz' + s, sz, dt, 90, 11));
+    A.elbow.rotation.x = spring('el' + s, el, dt, 110, 12);
+    A.hand.rotation.set(0.25 + 0.12 * n, 0, s * 0.1 * wob(W * 1.3, s));
+  }
+
+  // legs: happy kicks, startle kick, idle toe wiggle
+  for (const s of [-1, 1]) {
+    const k = happyW * (0.5 + 0.5 * Math.sin(W * 10 + s * 1.9)) * (1 - watchRestack * 0.5) + surprise * 0.8
+      + cheer * 0.5 * (0.5 + 0.5 * Math.sin(W * 12 + s));
+    const Lg = legs[s];
+    Lg.hip.rotation.x = spring('hip' + s, -0.05 - 0.35 * k + wob(W * 0.7, s * 5) * 0.03, dt, 120, 12);
+    Lg.knee.rotation.x = spring('knee' + s, 0.55 - 0.45 * k, dt, 120, 12);
+    Lg.foot.rotation.x = -0.7 + 0.15 * Math.sin(W * 1.3 + s * 2);
+  }
+
+  // hair and bow lag behind head motion
+  const hairX = spring('hairx', head.rotation.x, dt, 45, 5), hairZ = spring('hairz', head.rotation.z, dt, 45, 5);
+  const hairY = spring('hairy', bodyPivot.position.y, dt, 90, 6);
+  hairRoot.rotation.set((hairX - head.rotation.x) * 0.5, 0, (hairZ - head.rotation.z) * 0.5);
+  hairRoot.position.y = clamp((hairY - bodyPivot.position.y) * 0.35, -0.02, 0.02);
+
+  tears.forEach((tear, i) => {
+    const s = i ? -1 : 1, c = (((W) + i * 0.7) % 1.4 + 1.4) % 1.4 / 1.4;
+    tear.position.copy(onFace(s * lerp(0.36, 0.47, c), lerp(-0.06, -0.55, c), lerp(0.93, 0.76, c), faceParams, 0.02));
+    tear.material.opacity = within(t, 16, 22.4) ? Math.sin(Math.PI * c) * sadW * 0.9 : 0;
+    tear.scale.setScalar(0.7 + 0.5 * Math.min(1, c * 4)); tear.scale.y *= 1.35;
+  });
+
+  blocks.forEach((b, i) => { poseBlock(i, t); if (t < 0) b.scale.setScalar(Math.max(0.001, smooth(-1.2, -0.2, t))); });
+
+  scene.updateMatrixWorld();
+  head.getWorldPosition(headPos);
+  hearts.forEach((h, i) => {
+    const life = (W * 0.45 + i / hearts.length) % 1;
+    h.position.set(headPos.x + Math.sin(i * 2.1) * 0.75, headPos.y + 0.2 + life * 1.3, headPos.z + 0.2);
+    h.material.opacity = Math.max(0, Math.sin(Math.PI * life) * happyW);
+    h.scale.setScalar(0.2 + 0.05 * Math.sin(W * 5 + i));
+  });
+
+  // speech bubble follows the head
+  tmp.set(headPos.x - 0.6, headPos.y + 0.55, headPos.z).project(camera);
+  const bw = ui.bubble.offsetWidth, bh = ui.bubble.offsetHeight;
+  const viewport = renderer.domElement.getBoundingClientRect();
+  ui.bubble.style.left = viewport.left + clamp((tmp.x + 1) / 2 * viewport.width, bw * 0.85 + 16, viewport.width - bw * 0.15 - 16) + 'px';
+  ui.bubble.style.top = viewport.top + clamp((1 - tmp.y) / 2 * viewport.height, bh + 90, viewport.height) + 'px';
+
+  practice.update(t, W);
+}
+
+const practice = createPractice({ G, ui, show, run, THREE, scene, mesh, mat, blocks, baby, rug, wall, key, clock: { renderCreator: () => renderCreator(live), createAt: CREATE_AT, titleAt: -INTRO, now: () => W } });
+
+// ---------- loop & keys ----------
+let last = performance.now();
+addEventListener('keydown', e => {
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+  if (G.phase === 'create' && live.tab !== 'skin') {
+    if (e.key === 'ArrowLeft') step(-1);
+    if (e.key === 'ArrowRight') step(1);
+  }
+});
+
+function resize() {
+  const {width,height} = renderer.domElement.getBoundingClientRect();
+  renderer.setSize(Math.max(1,width), Math.max(1,height), false);
+  camera.aspect = width / Math.max(1,height);
+  camera.fov = camera.aspect < 1 ? 58 : 35;
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+new ResizeObserver(resize).observe(renderer.domElement); resize();
+
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  W += dt; stepPlan(dt);
+  update(s, W, dt);
+  renderer.render(scene, camera);
+  if (!loaded) { loaded = true; document.getElementById('loading').hidden = true; }
+  requestAnimationFrame(frame);
+}
+let loaded = false;
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
