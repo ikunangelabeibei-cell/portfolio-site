@@ -36,7 +36,7 @@
     background: var(--panel); padding: 28px 40px; border-radius: 22px; max-width: min(560px, calc(100vw - 32px));
     box-shadow: 0 10px 40px rgba(80, 40, 50, .18); }
   .card.show { transform: translate(-50%, -50%) !important; }
-  .card h1, .card h2 { margin: 0 0 8px; font-family: Georgia, "Times New Roman", serif; font-weight: 400; }
+  .card h1, .card h2 { margin: 0 0 8px; font-family: "Baloo 2", sans-serif; font-weight: 700; }
   .card h1 { font-size: 44px; }
   .card h2 { font-size: 34px; color: var(--accent); }
   .card p { margin: 0; color: var(--muted); line-height: 1.5; font-size: 17px; }
@@ -53,7 +53,7 @@
   .panel { position: absolute; right: 32px; top: 50%; width: 360px; transform: translate(20px, -50%);
     background: var(--panel); border-radius: 20px; padding: 18px; box-shadow: 0 10px 40px rgba(80, 40, 50, .16); }
   .panel.show { transform: translate(0, -50%) !important; }
-  .panel-head { font-family: Georgia, serif; color: var(--accent); font-size: 22px; margin: 2px 4px 12px; }
+  .panel-head { font-family: "Baloo 2", sans-serif; color: var(--accent); font-size: 22px; margin: 2px 4px 12px; }
 
   .opt { display: block; width: 100%; text-align: left; font: inherit; font-size: 16px; color: var(--ink);
     background: #fff; border: 1.5px solid var(--chip-line); border-radius: 14px; padding: 12px 14px; margin: 8px 0;
@@ -348,6 +348,9 @@
     .identity-controls { grid-template-columns: 1fr; gap: 0; }
   }
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700&family=Baloo+2:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="simulator-ui.css">
 <script type="importmap">
 { "imports": {
@@ -509,7 +512,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMappingExposure = 0.92;
 
 const scene = new THREE.Scene();
-const bgWarm = new THREE.Color('#f3d9c9'), bgCool = new THREE.Color('#9fa9bd');
+const bgWarm = new THREE.Color('#d9eaf7'), bgCool = new THREE.Color('#9fa9bd');
 scene.background = bgWarm.clone();
 scene.fog = new THREE.Fog(bgWarm.clone(), 9, 18);
 
@@ -545,7 +548,7 @@ const rug = mesh(new THREE.CircleGeometry(2.3, 64), mat('#bfe0d8', { roughness: 
 rug.rotation.x = -Math.PI / 2; rug.position.y = 0.004; scene.add(rug);
 const rugRing = mesh(new THREE.RingGeometry(1.9, 2.0, 64), mat('#f3fbf8', { roughness: 1 }), { cast: false, receive: true });
 rugRing.rotation.x = -Math.PI / 2; rugRing.position.y = 0.006; scene.add(rugRing);
-const wall = mesh(new THREE.PlaneGeometry(40, 14), mat('#f8e4d9', { roughness: 1 }), { cast: false, receive: true });
+const wall = mesh(new THREE.PlaneGeometry(40, 14), mat('#fdf1d2', { roughness: 1 }), { cast: false, receive: true });
 wall.position.set(0, 7, -3.2); scene.add(wall);
 const skirting = mesh(new THREE.BoxGeometry(40, 0.18, 0.06), mat('#fffaf6'), { cast: false, receive: true });
 skirting.position.set(0, 0.09, -3.17); scene.add(skirting);
@@ -997,6 +1000,20 @@ const hearts = Array.from({ length: 7 }, () => {
   scene.add(sp); return sp;
 });
 
+// the caregiver's hand reaches in to comfort (or wipe the spill) after a supportive response
+const parentHand = new THREE.Group(); scene.add(parentHand);
+{
+  const sleeveDir = new THREE.Vector3(1, 0.55, 0.9).normalize();
+  const sleeve = mesh(new THREE.CylinderGeometry(0.17, 0.2, 1.4, 24), mat('#7fa6d9', { roughness: 0.9 }));
+  sleeve.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), sleeveDir);
+  sleeve.position.copy(sleeveDir).multiplyScalar(0.85);
+  const palm = mesh(new THREE.SphereGeometry(0.18, 28, 18), mat('#e2ae8c', { roughness: 0.55 }));
+  palm.scale.set(1.2, 0.75, 1.05);
+  parentHand.add(sleeve, palm);
+  parentHand.visible = false;
+}
+const handAway = new THREE.Vector3(2.8, 1.9, 2.2), handGoal = new THREE.Vector3();
+
 // ---------- UI ----------
 const $ = id => document.getElementById(id);
 const ui = {
@@ -1299,15 +1316,26 @@ function blinkAmount(t) {
 }
 
 function update(t, W, dt) {
-  const worried = pulse(t, 7.3, 15.0, 0.5) + pulse(t, 23.0, 26.4, 0.5);
-  const sadW = smooth(14.35, 15.1, t) * (1 - smooth(22.6, 23.2, t));
-  const happyW = smooth(26.1, 26.8, t) * (1 - 0.55 * smooth(38.6, 39.8, t)) * (1 - smooth(STORY_END - 1.2, STORY_END - 0.2, t));
+  let worried = pulse(t, 7.3, 15.0, 0.5) + pulse(t, 23.0, 26.4, 0.5);
+  let sadW = smooth(14.35, 15.1, t) * (1 - smooth(22.6, 23.2, t));
+  let happyW = smooth(26.1, 26.8, t) * (1 - 0.55 * smooth(38.6, 39.8, t)) * (1 - smooth(STORY_END - 1.2, STORY_END - 0.2, t));
   const lookTower = pulse(t, 3.2, 7.6, 0.5);
   const watchRestack = pulse(t, 28.0, 32.2, 0.5);
-  const surprise = pulse(t, 6.2, 6.95, 0.2);
-  const ohNo = pulse(t, 6.6, 8.0, 0.3);
-  const talk = pulse(t, 8.0, 10.9, 0.2) + pulse(t, 23.5, 25.0, 0.2);
-  const sob = sadW * pulse(t, 15.0, 22.5, 0.6);
+  let surprise = pulse(t, 6.2, 6.95, 0.2);
+  let ohNo = pulse(t, 6.6, 8.0, 0.3);
+  let talk = pulse(t, 8.0, 10.9, 0.2) + pulse(t, 23.5, 25.0, 0.2);
+  let sob = sadW * pulse(t, 15.0, 22.5, 0.6);
+  // In a practice scene the child's feelings follow the visitor's responses rather than the fixed timeline.
+  // The opening (t < 11.5) keeps its own animation and blends with the scene's starting mood.
+  const emo = practice.emotion(W, dt);
+  if (emo) {
+    const opening = t < 11.5 ? 1 : 0;
+    worried = Math.max(emo.worried, worried * opening);
+    sadW = emo.sad; happyW = emo.happy; sob = emo.sob;
+    surprise = Math.max(emo.surprise, surprise * opening);
+    ohNo *= opening;
+    talk = Math.max(talk * opening, emo.talk);
+  }
   const cheer = happyW * pulse(t, 31.7, 33.8, 0.3);
   const hello = pulse(t, -INTRO + 3.4, -INTRO + 6.2, 0.4);
   const reach = smooth(3.8, 5.2, t) * (1 - smooth(6.0, 6.7, t)), tap = pulse(t, 5.4, 5.9, 0.2);
@@ -1327,6 +1355,7 @@ function update(t, W, dt) {
     tmp.lerpVectors(tgtCreator, tgtBase, k).lerp(tgtClose, close);
   }
   camera.position.lerp(camReflect, reflectCam); tmp.lerp(tgtReflect, reflectCam);
+  if (emo) { camera.position.lerp(camClose, emo.push * 0.6); tmp.lerp(tgtClose, emo.push * 0.4); }   // slow push-in during the scene
   camera.position.x += Math.sin(W * 0.35) * 0.12;
   camera.position.y += Math.sin(W * 0.27) * 0.04;
   // Phones have no side bubble, so center the child and step back to keep the whole head visible.
@@ -1459,7 +1488,7 @@ function update(t, W, dt) {
   tears.forEach((tear, i) => {
     const s = i ? -1 : 1, c = (((W) + i * 0.7) % 1.4 + 1.4) % 1.4 / 1.4;
     tear.position.copy(onFace(s * lerp(0.36, 0.47, c), lerp(-0.06, -0.55, c), lerp(0.93, 0.76, c), faceParams, 0.02));
-    tear.material.opacity = within(t, 16, 22.4) ? Math.sin(Math.PI * c) * sadW * 0.9 : 0;
+    tear.material.opacity = emo ? Math.sin(Math.PI * c) * sob * 0.9 : within(t, 16, 22.4) ? Math.sin(Math.PI * c) * sadW * 0.9 : 0;
     tear.scale.setScalar(0.7 + 0.5 * Math.min(1, c * 4)); tear.scale.y *= 1.35;
   });
 
@@ -1473,6 +1502,14 @@ function update(t, W, dt) {
     h.material.opacity = Math.max(0, Math.sin(Math.PI * life) * happyW);
     h.scale.setScalar(0.2 + 0.05 * Math.sin(W * 5 + i));
   });
+
+  const reachIn = emo ? spring('hand', emo.comfort, dt, 30, 9) : 0;
+  parentHand.visible = reachIn > 0.02;
+  if (parentHand.visible) {
+    if (emo.hand === 'wipe') handGoal.set(1.15 + Math.sin(W * 3.2) * 0.18, 0.58, 0.5);                       // wipes the spill
+    else handGoal.set(headPos.x + 0.42, headPos.y - 0.42 + Math.abs(Math.sin(W * 3)) * 0.04, headPos.z + 0.22);   // gentle pat on the shoulder
+    parentHand.position.lerpVectors(handAway, handGoal, clamp(reachIn));
+  }
 
   // speech bubble follows the head
   tmp.set(headPos.x - 0.6, headPos.y + 0.55, headPos.z).project(camera);
