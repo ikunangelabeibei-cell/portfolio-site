@@ -23,7 +23,7 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
   document.getElementById('ui').append(panel);
   const nav = document.createElement('button');
   nav.id = 'libraryBtn';
-  nav.textContent = 'Scenes';
+  nav.textContent = SURVEY ? 'Moments' : 'Scenes';
   const header = document.createElement('header');
   header.id = 'appHeader';
   header.innerHTML = '<a class="brand" href="#" aria-label="Baby Sim home"><span>Baby Sim</span></a><div class="header-actions"></div>';
@@ -38,6 +38,9 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
   let name = 'Mia';
   let selected = SCENARIOS[0];
   let round = 0;
+  // Survey takers see one exchange per scene and can opt into the other two.
+  let turnLimit = SURVEY ? 1 : 3;
+  const finished = new Set();
   let history = [];
   let order = shuffle();
   let journal = [];
@@ -103,13 +106,15 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
     if (!scenario?.variants[stage]) return;
     selected = scenario;
     round = 0;
+    turnLimit = SURVEY ? 1 : 3;
     history = [];
     order = shuffle();
     customOpen = false;
     G.chosen = null;
     decorate();
     G.phase = 'intro';
-    run(['jump', selected.id === 'tower' && ['toddler','preschool'].includes(stage) ? -1.6 : 7.9], ['play', 11.6], ['do', () => { G.phase = 'choose'; render(); }]);
+    // The intro waits for Continue rather than switching to the choices mid-read.
+    run(['jump', selected.id === 'tower' && ['toddler','preschool'].includes(stage) ? -1.6 : 7.9], ['play', 11.6]);
     render();
   }
   function choose(index, text, selfSelected = false) {
@@ -137,7 +142,7 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
     catch { storageAvailable = false; }
   }
   function complete() {
-    if (SURVEY) { G.phase = 'summary'; render(); return; }
+    if (SURVEY) { finished.add(selected.id); G.phase = 'summary'; render(); return; }
     journal.push({name: variant().name, character: name, stage: STAGES[stage].label, lens: lens().title, date: new Date().toLocaleString(), turns: history.map(item => ({...item})), plan: ''});
     journal = journal.slice(-30);
     save();
@@ -149,26 +154,34 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
   }
   function checkpoints() {
     const style = activeStyle();
-    return lens().factors.map(factor => {
+    const involved = lens().factors.filter(factor => moment().focus.includes(factor.id));
+    const others = lens().factors.length - involved.length;
+    return involved.map(factor => {
       const direction = checkpointDirection(style?.id, factor.id, moment().focus.includes(factor.id));
       const supporting = direction.label === 'Supported';
       const arrow = supporting ? '↑' : ['Strained','Safety concern'].includes(direction.label) ? '↓' : '↔';
       return `<div class="development-row ${direction.kind}"><div><b>${factor.name}</b><small>${factor.domain}</small></div><div class="direction-track" aria-hidden="true">${direction.position === null ? '' : `<i style="width:${direction.position}%"></i>`}</div><span class="direction-label">${direction.position === null ? '—' : arrow} ${direction.label}</span></div>`;
-    }).join('');
+    }).join('') + (others ? `<p class="areas-note">${others} other ${others === 1 ? 'area isn’t' : 'areas aren’t'} involved in this moment.</p>` : '');
   }
   function analysis() {
     const style = activeStyle();
     const entry = active();
-    return `<div class="analysis-heading"><div class="eyebrow">Exchange ${round + 1} of 3</div><h2>How this might feel</h2></div><div class="fb-row fb-you"><div class="ava">You</div><div><span class="who">Your response ${style ? `<span class="stylepill" style="background:${style.color}">${style.name}</span>` : '<span class="stylepill" style="background:#8b7d83">Not classified</span>'}</span><div class="line">${escapeHTML(entry.text)}</div>${entry.selfSelected ? '<small>Pattern selected by you; the text has not been interpreted.</small>' : ''}</div></div>
+    const last = round === turnLimit - 1;
+    const actions = `<div class="analysis-actions">${button(last ? (SURVEY ? 'Finish this moment →' : 'Finish & reflect →') : 'Continue the moment →','next','next-btn')}${button('Try a different response','retry','retry')}</div>`;
+    const why = `<p class="why"><b>Why:</b> ${responseExplanation(style?.id,lensId()).replaceAll('Mia',escapeHTML(name))} For this moment, the focus is ${moment().focus.filter(id => lens().factors.some(f => f.id === id)).map(id => lens().factors.find(f => f.id === id).name.toLowerCase()).join(', ')}.</p>`;
+    const features = style ? `<details class="factor-details"><summary>Response features in the framework</summary><p>${style.features.join(' · ')}</p><p>Level ${style.level} · ${style.fullName} · ${style.zh}. This describes the example response, not your identity as a parent.</p></details>` : '';
+    const repair = `<div class="repair-note"><b>${style?.id === 'level5' ? 'Safety comes first' : 'A next step to practice'}</b><p>${repairSuggestion(style?.id,lensId())}</p></div>`;
+    const sourceNote = `<p class="practice-note">Areas are educational prompts informed by Erikson and parenting research. They are not MAPS subscales or validated developmental checkpoints. <a href="${SOURCES[lens().source].url}" target="_blank" rel="noopener">Research for this lens</a></p>`;
+    const areaMeanings = lens().factors.filter(f => !SURVEY || moment().focus.includes(f.id)).map(f => `<p><b>${f.name}:</b> ${f.focus}</p>`).join('');
+    // Survey mode keeps the reading short: feeling, involved areas, one next step; the rest sits behind "More detail".
+    const details = SURVEY
+      ? `${repair}<details class="factor-details more-detail"><summary>More detail</summary><p class="lens-note">${lens().title} <span>${lens().virtue}</span></p>${areaMeanings}${why}${features}${sourceNote}</details>${actions}${last && turnLimit === 1 ? `<p class="survey-more">${button('Want more? Continue this moment (2 more exchanges)','extend','text-button')}</p>` : ''}`
+      : `<details class="factor-details area-explainer"><summary>What these areas mean</summary>${areaMeanings}</details>${why}${features}${repair}${sourceNote}${actions}${button('Read the research notes','research','text-button')}`;
+    return `<div class="analysis-heading"><div class="eyebrow">${turnLimit > 1 ? `Exchange ${round + 1} of ${turnLimit}` : escapeHTML(variant().name)}</div><h2>How this might feel</h2></div><div class="fb-row fb-you"><div class="ava">You</div><div><span class="who">Your response ${style ? `<span class="stylepill" style="background:${style.color}">${style.name}</span>` : '<span class="stylepill" style="background:#8b7d83">Not classified</span>'}</span><div class="line">${escapeHTML(entry.text)}</div>${entry.selfSelected ? '<small>Pattern selected by you; the text has not been interpreted.</small>' : ''}</div></div>
       <div class="fb-row fb-child"><div class="ava">🧸</div><div><span class="who">What ${escapeHTML(name)} might be ${stage === 'infant' ? 'experiencing' : 'thinking'}</span><div class="line">“${imaginedPerspective(style?.id, lensId())}”</div>${stage === 'infant' ? '<small>Imagined perspective; infants do not express these words.</small>' : ''}</div></div>
-<div class="development-head"><h2>Development check-in</h2><span>illustrative direction · no measured change</span></div>
-      <p class="lens-note">${lens().title} <span>${lens().virtue}</span></p>${checkpoints()}
-      <details class="factor-details area-explainer"><summary>What these areas mean</summary>${lens().factors.map(f => `<p><b>${f.name}:</b> ${f.focus}</p>`).join('')}</details>
-      <p class="why"><b>Why:</b> ${responseExplanation(style?.id,lensId()).replaceAll('Mia',escapeHTML(name))} For this moment, the focus is ${moment().focus.filter(id => lens().factors.some(f => f.id === id)).map(id => lens().factors.find(f => f.id === id).name.toLowerCase()).join(', ')}.</p>
-      ${style ? `<details class="factor-details"><summary>Response features in the framework</summary><p>${style.features.join(' · ')}</p><p>Level ${style.level} · ${style.fullName} · ${style.zh}. This describes the example response, not your identity as a parent.</p></details>` : ''}
-      <div class="repair-note"><b>${style?.id === 'level5' ? 'Safety comes first' : 'A next step to practice'}</b><p>${repairSuggestion(style?.id,lensId())}</p></div>
-      <p class="practice-note">Areas are educational prompts informed by Erikson and parenting research. They are not MAPS subscales or validated developmental checkpoints. <a href="${SOURCES[lens().source].url}" target="_blank" rel="noopener">Research for this lens</a></p>
-      <div class="analysis-actions">${button(round === 2 ? 'Finish & reflect →' : 'Continue the moment →','next','next-btn')}${button('Try a different response','retry','retry')}</div>${button('Read the research notes','research','text-button')}`;
+<div class="development-head"><h2>${SURVEY ? 'Areas this moment touches' : 'Development check-in'}</h2><span>illustrative direction · no measured change</span></div>
+      ${SURVEY ? '' : `<p class="lens-note">${lens().title} <span>${lens().virtue}</span></p>`}${checkpoints()}
+      ${details}`;
   }
   function render() {
     const phaseChanged = lastPhase !== G.phase;
@@ -181,10 +194,11 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
     nav.hidden = ['title','create'].includes(G.phase);
     if (G.phase === 'library' && SURVEY) panel.innerHTML = `
       <div class="eyebrow">SURVEY DEMO</div>
-      <h2>Try a moment</h2>
-      <p class="stage-note">Pick one of two everyday moments. Each has three short exchanges: choose one of five responses (A–E), then see how the child might experience it. About 1–2 minutes each.</p>
+      <h2>Choose a moment</h2>
+      <p class="stage-note">Pick one of two everyday moments. Choose one of five responses (A–E), then see how the child might experience it. About 1 minute each.</p>
       <div class="identity-controls"><div><label for="characterName">Child’s name</label><input id="characterName" maxlength="24" value="${escapeHTML(name)}" autocomplete="off"></div></div>
-      <div class="scene-list">${SURVEY_SCENES.map(s => { const v = getVariant(SCENARIOS.find(x => x.id === s.id), s.stage, name); return `<button data-scenario="${s.id}" data-stage="${s.stage}"><span><b>${s.label}: ${v.name}</b><small>${s.hint} · ${v.setting} · ${LENSES[getLens(s.stage)].title}</small></span><span class="scene-arrow" aria-hidden="true">›</span></button>`; }).join('')}</div>
+      <div class="scene-list">${SURVEY_SCENES.map(s => { const v = getVariant(SCENARIOS.find(x => x.id === s.id), s.stage, name); return `<button data-scenario="${s.id}" data-stage="${s.stage}"><span><b>${s.label}: ${v.name}</b><small>${s.hint} · ${v.setting} · ${LENSES[getLens(s.stage)].title}</small></span>${finished.has(s.id) ? '<span class="scene-done">✓ Done</span>' : '<span class="scene-arrow" aria-hidden="true">›</span>'}</button>`; }).join('')}</div>
+      ${finished.size === SURVEY_SCENES.length ? '<p class="survey-return"><b>You’ve tried both moments.</b> Return to the survey tab to continue.</p>' : ''}
       <p class="scene-help">You can try a different response at any point. Nothing you choose here is saved or sent anywhere.</p>`;
     else if (G.phase === 'library') panel.innerHTML = `
       <h2>Choose a scene</h2>
@@ -195,10 +209,18 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
       <div class="library-footer">${button('Change appearance','design','text-button')}${button('Research notes','research','text-button')}</div>`;
     if (['intro','choose'].includes(G.phase)) panel.innerHTML = `
       <div class="eyebrow">${escapeHTML(variant().setting)} · ${escapeHTML(name)}</div>
-      ${G.phase === 'intro' ? `<h2>${variant().name}</h2><p class="scene-context">${escapeHTML(context())}</p>${button('Continue →','skip','next-btn')}` : `<h2>How would you respond?</h2><div class="progress">${[0,1,2].map(i => `<span class="${i <= round ? 'active' : ''}"></span>`).join('')}</div><p class="turn-counter">Exchange ${round + 1} of 3</p>${round ? `<p class="scene-context">${escapeHTML(context())}</p>` : ''}<blockquote class="mobile-dialogue"><small>${escapeHTML(name)} ${stage === 'infant' ? 'signals' : 'says'}</small>${escapeHTML(speech())}</blockquote>${order.map((index,position) => `<button class="opt dialogue-choice" data-choice="${index}"><b>${String.fromCharCode(65+position)}</b><span>${escapeHTML(choices()[index])}</span></button>`).join('')}${button('Write your own…','custom','opt write')}`}`;
+      ${G.phase === 'intro' ? `<h2>${variant().name}</h2><p class="scene-context">${escapeHTML(context())}</p>${button('Continue →','skip','next-btn')}` : `<h2>How would you respond?</h2>${turnLimit > 1 ? `<div class="progress">${Array.from({length: turnLimit}, (_, i) => `<span class="${i <= round ? 'active' : ''}"></span>`).join('')}</div><p class="turn-counter">Exchange ${round + 1} of ${turnLimit}</p>` : ''}${round ? `<p class="scene-context">${escapeHTML(context())}</p>` : ''}<blockquote class="mobile-dialogue"><small>${escapeHTML(name)} ${stage === 'infant' ? 'signals' : 'says'}</small>${escapeHTML(speech())}</blockquote>${order.map((index,position) => `<button class="opt dialogue-choice" data-choice="${index}"><b>${String.fromCharCode(65+position)}</b><span>${escapeHTML(choices()[index])}</span></button>`).join('')}${SURVEY ? '' : button('Write your own…','custom','opt write')}`}`;
     if (G.phase === 'react') panel.innerHTML = `<div class="eyebrow">YOU RESPONDED</div><h2>${escapeHTML(name)} pauses…</h2><p class="selected-dialogue">${escapeHTML(active().text)}</p><p class="scene-context">${activeStyle()?.id === 'level5' ? 'The moment feels tense. No physical harm is animated.' : 'Take a moment to notice the expression and the space between you.'}</p>${button('See how this might feel →','analyze','next-btn')}`;
     if (G.phase === 'analysis') panel.innerHTML = analysis();
-    if (G.phase === 'summary') panel.innerHTML = `<div class="eyebrow">A MOMENT TO REFLECT</div><h2>${variant().name}</h2><p class="stage-note">${STAGES[stage].label} · ${lens().title}</p>${history.map((h,i) => `<article class="journal-turn"><small>Moment ${i+1} · ${escapeHTML(styleName(h))}</small><p>${escapeHTML(h.text)}</p><p class="stage-note">${repairSuggestion(h.approach,h.lens)}</p></article>`).join('')}${SURVEY ? `<p class="survey-return"><b>Thanks for trying the demo.</b> Try the other moment, or return to the survey tab to continue.</p>${button('Try the other moment','library','next-btn')}${button('Replay this moment','replay','retry')}` : `<label for="reflectionPlan">What would you try next time?</label><textarea id="reflectionPlan" maxlength="600" placeholder="When the moment gets difficult, I will…">${escapeHTML(journal.at(-1)?.plan || '')}</textarea><p class="practice-note">${storageAvailable ? 'The journal stays in this browser.' : 'Browser saving is unavailable. Download your journal to keep it.'}</p>${button('Choose another moment','library','next-btn')}${button('Replay this moment','replay','retry')}${button('Download journal','download','retry')}`}${disclaimer()}`;
+    if (G.phase === 'summary') {
+      // A repair tip identical to the previous moment's is shown once.
+      const turns = history.map((h,i) => { const tip = repairSuggestion(h.approach,h.lens); const repeat = i > 0 && tip === repairSuggestion(history[i-1].approach,history[i-1].lens); return `<article class="journal-turn"><small>Moment ${i+1} · ${escapeHTML(styleName(h))}</small><p>${escapeHTML(h.text)}</p>${repeat ? '' : `<p class="stage-note">${tip}</p>`}</article>`; }).join('');
+      if (SURVEY) {
+        const other = SURVEY_SCENES.find(scene => !finished.has(scene.id));
+        const otherName = other && getVariant(SCENARIOS.find(x => x.id === other.id), other.stage, name).name;
+        panel.innerHTML = `<div class="eyebrow">MOMENT COMPLETE</div><h2>${variant().name}</h2><div class="survey-return">${other ? `<b>Thanks! One more moment to try.</b>${escapeHTML(other.label)}: ${escapeHTML(otherName)}. Or return to the survey tab to continue.` : '<b>Thanks for trying both moments.</b>Return to the survey tab to continue.'}</div>${other ? `<button class="next-btn" data-scenario="${other.id}" data-stage="${other.stage}">Try “${escapeHTML(otherName)}” →</button>` : ''}${button('Replay this moment','replay','retry')}${button('Back to the moments','library','text-button')}<h3 class="summary-sub">What you chose</h3><p class="stage-note">${STAGES[stage].label} · ${lens().title}</p>${turns}${disclaimer()}`;
+      } else panel.innerHTML = `<div class="eyebrow">A MOMENT TO REFLECT</div><h2>${variant().name}</h2><p class="stage-note">${STAGES[stage].label} · ${lens().title}</p>${turns}<label for="reflectionPlan">What would you try next time?</label><textarea id="reflectionPlan" maxlength="600" placeholder="When the moment gets difficult, I will…">${escapeHTML(journal.at(-1)?.plan || '')}</textarea><p class="practice-note">${storageAvailable ? 'The journal stays in this browser.' : 'Browser saving is unavailable. Download your journal to keep it.'}</p>${button('Choose another moment','library','next-btn')}${button('Replay this moment','replay','retry')}${button('Download journal','download','retry')}${disclaimer()}`;
+    }
     if (G.phase === 'journal') panel.innerHTML = `<div class="eyebrow">PRACTICE JOURNAL</div><h2>${journal.length} completed sessions</h2>${journal.length ? journal.slice().reverse().map(j => `<article class="journal-turn"><b>${escapeHTML(j.name)}</b><small>${escapeHTML(j.stage)} ${j.lens ? '· '+escapeHTML(j.lens) : ''} · ${escapeHTML(j.date)}</small>${j.turns.map(h => `<p><small>${escapeHTML(styleName(h))}${h.selfSelected ? ' · self-selected' : ''}</small>${escapeHTML(h.text)}</p>`).join('')}${j.plan ? `<p class="context">Next time: ${escapeHTML(j.plan)}</p>` : ''}</article>`).join('') : '<p>Complete a moment to save a reflection.</p>'}${button('Back to moments','library','next-btn')}${button('Download journal','download','retry')}`;
     if (G.phase === 'research') panel.innerHTML = `<div class="eyebrow">RESEARCH & FRAMEWORK</div><h2>What informs this demo?</h2><p>${stageNote}</p><p>The five response patterns come from the supplied MAPS-based workbooks. Original MAPS has seven practice dimensions, not five clinical parenting types. The workbook’s level cutoffs are interpretive.</p><p>MAPS’s original sample covered ages 3–17. Infant and younger-toddler examples are educational adaptations.</p><p>Erikson supplies a theoretical lens. The check-in factors and bar directions are authored for reflection; they are not a developmental test or measured before-and-after changes.</p><p>Older ages currently use the same stylized seated avatar. Scenarios and dialogue change with age.</p><ul class="source-list">${SOURCES.map(s => `<li><a href="${s.url}" target="_blank" rel="noopener">${s.title}</a></li>`).join('')}</ul><p><a href="research/parenting-development-review.md" target="_blank">Read the full article review and mapping</a></p>${G.chosen && history[round] ? button('Back to this analysis','back-analysis','next-btn') : button('Back to moments','library','next-btn')}`;
     panel.scrollTop = 0;
@@ -234,9 +256,13 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
       case 'design': G.phase = 'create'; run(['jump',clock.createAt]); render(); break;
       case 'replay': start(selected.id); break;
       case 'analyze': G.phase = 'analysis'; render(); break;
+      case 'extend':
+        if (G.phase !== 'analysis') break;
+        turnLimit = 3; round++; order = shuffle(); G.chosen = null; G.phase = 'choose'; run(['jump',11.6]); render();
+        break;
       case 'next':
         if (G.phase !== 'analysis') break;
-        if (round === 2) complete();
+        if (round === turnLimit - 1) complete();
         else { round++; order = shuffle(); G.chosen = null; G.phase = 'choose'; run(['jump',11.6]); render(); }
         break;
       case 'retry':

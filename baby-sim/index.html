@@ -357,6 +357,11 @@
 </script>
 </head>
 <body>
+<div id="loading" role="status"><div><b>Baby Sim</b><span id="loadingText">Loading the scene…</span></div></div>
+<script>
+  // Three.js loads from a CDN; explain a slow or failed load instead of showing a blank page.
+  setTimeout(() => { const t = document.getElementById('loadingText'); if (t && !document.getElementById('loading').hidden) t.textContent = 'Still loading… If nothing appears, check your connection and refresh the page.'; }, 12000);
+</script>
 <canvas id="c"></canvas>
 
 <div id="ui">
@@ -1308,7 +1313,9 @@ function update(t, W, dt) {
   const reach = smooth(3.8, 5.2, t) * (1 - smooth(6.0, 6.7, t)), tap = pulse(t, 5.4, 5.9, 0.2);
 
   // camera
-  const close = sadW * 0.9 + pulse(t, 26.4, 28.2, 0.5) * 0.55;
+  // The reaction zoom is gentle so the child's head and the speech bubble stay in frame.
+  const close = (sadW * 0.9 + pulse(t, 26.4, 28.2, 0.5) * 0.55) * 0.5;
+  const narrow = renderer.domElement.clientWidth <= 700;
   G.rcam += ((G.phase === 'reflect' ? 1 : 0) - G.rcam) * (1 - Math.exp(-dt * 2.2));
   const reflectCam = G.rcam;
   if (t < 0) {
@@ -1322,7 +1329,9 @@ function update(t, W, dt) {
   camera.position.lerp(camReflect, reflectCam); tmp.lerp(tgtReflect, reflectCam);
   camera.position.x += Math.sin(W * 0.35) * 0.12;
   camera.position.y += Math.sin(W * 0.27) * 0.04;
-  if (G.phase !== 'title') tmp.x -= 0.65;
+  // Phones have no side bubble, so center the child and step back to keep the whole head visible.
+  if (narrow && G.phase !== 'title') { camera.position.z += 0.9; camera.position.y += 0.15; tmp.y += 0.1; }
+  else if (G.phase !== 'title') tmp.x -= 0.65;
   camera.lookAt(tmp);
 
   // lighting mood
@@ -1466,7 +1475,7 @@ function update(t, W, dt) {
   });
 
   // speech bubble follows the head
-  tmp.set(headPos.x - 0.25, headPos.y + 0.65, headPos.z).project(camera);
+  tmp.set(headPos.x - 0.6, headPos.y + 0.55, headPos.z).project(camera);
   const bw = ui.bubble.offsetWidth, bh = ui.bubble.offsetHeight;
   const viewport = renderer.domElement.getBoundingClientRect();
   ui.bubble.style.left = viewport.left + clamp((tmp.x + 1) / 2 * viewport.width, bw * 0.85 + 16, viewport.width - bw * 0.15 - 16) + 'px';
@@ -1502,8 +1511,10 @@ function frame(now) {
   W += dt; stepPlan(dt);
   update(s, W, dt);
   renderer.render(scene, camera);
+  if (!loaded) { loaded = true; document.getElementById('loading').hidden = true; }
   requestAnimationFrame(frame);
 }
+let loaded = false;
 requestAnimationFrame(frame);
 </script>
 </body>
