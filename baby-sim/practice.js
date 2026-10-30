@@ -7,22 +7,36 @@ const stageNote = 'The five age stages follow Erikson’s first five psychosocia
 const KEY = 'baby-sim-journal-v3';
 const SEEN_KEY = 'baby-sim-onboarded-v1';
 const TIPS_KEY = 'baby-sim-tips-done-v1';
-const SCENE_ICON = { tower:'🧱', milk:'🥛', bed:'🌙', share:'🧸', store:'🛒' };
-// Older children's versions of a scene are different situations, so they get their own icons.
-const OLDER_ICON = { school: { tower:'📐', milk:'🍳', bed:'📝', share:'🤝', store:'🧾' }, teen: { tower:'💻', milk:'🍳', bed:'📱', share:'👕', store:'💳' } };
-const sceneIcon = (id, st) => OLDER_ICON[st]?.[id] || SCENE_ICON[id];
 const RECOMMENDED = { stage:'toddler', id:'milk' };
 // Age stages offered for now; the model and content still cover all five.
 const AGES = ['infant', 'toddler'];
-// How the child's mood moves after each response level; it carries through the scene.
+// How the child's mood moves after each response level; it carries through the scene and shows as hearts.
 const MOOD_STEP = { level1:20, level2:10, level3:-8, level4:-18, level5:-26 };
-const MOODS = [[20,'😢','very upset'],[40,'😟','upset'],[60,'😐','unsure'],[80,'🙂','settling'],[101,'😊','calm']];
-const moodOf = value => MOODS.find(([max]) => value < max);
+const MOODS = [[20,'very upset'],[40,'upset'],[60,'unsure'],[80,'settling'],[101,'calm']];
+const moodWord = value => MOODS.find(([max]) => value < max)[1];
+const hearts = value => Math.max(0, Math.min(5, Math.round(value / 20)));
 const TIPS = [
-  'Pick the response closest to what you would really say. There are no scores and nothing is judged.',
-  'After you choose, the child reacts and you see how they might feel. You can always go back and try a different response.',
-  'The mood in the corner of the scene carries from one exchange to the next, just like a real moment.',
+  'Pick what you would really say. There are no scores.',
+  'You can always go back and try another response.',
 ];
+// Small line icons drawn inline so the interface needs no icon font.
+const svg = (body, label = '') => `<svg viewBox="0 0 24 24" ${label ? `role="img" aria-label="${label}"` : 'aria-hidden="true"'}>${body}</svg>`;
+const ICON = {
+  grid: svg('<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/>'),
+  book: svg('<path d="M5 5.5A1.5 1.5 0 0 1 6.5 4H18v14H6.5A1.5 1.5 0 0 0 5 19.5z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H18v-3"/>'),
+  help: svg('<circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.6a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6"/><circle cx="12" cy="17" r=".6"/>'),
+  soundOn: svg('<path d="M4 10h3l5-4v12l-5-4H4z"/><path d="M16 9.5a3.5 3.5 0 0 1 0 5M18.5 7a7 7 0 0 1 0 10"/>'),
+  soundOff: svg('<path d="M4 10h3l5-4v12l-5-4H4z"/><path d="M16 10l5 5M21 10l-5 5"/>'),
+  back: svg('<path d="M15 5l-7 7 7 7"/>'),
+  heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5l-1.3-1.2C5.6 14.7 2.5 11.9 2.5 8.4 2.5 5.6 4.7 3.5 7.4 3.5c1.6 0 3.1.7 4.1 1.9 1-1.2 2.5-1.9 4.1-1.9 2.7 0 4.9 2.1 4.9 4.9 0 3.5-3.1 6.3-8.2 10.9z"/></svg>',
+};
+const SCENE_ART = {
+  milk: svg('<path d="M8 4h8l-1.3 14.5a1.5 1.5 0 0 1-1.5 1.5h-2.4a1.5 1.5 0 0 1-1.5-1.5z"/><path d="M8.4 9h7.2"/>'),
+  bed: svg('<path d="M15.5 3.5a8.5 8.5 0 1 0 5 13.5A7 7 0 0 1 15.5 3.5z"/>'),
+  store: svg('<path d="M3 5h2.2l2.1 10.2h10.4L20 8H6.2"/><circle cx="9" cy="19" r="1.4"/><circle cx="16.5" cy="19" r="1.4"/>'),
+  tower: svg('<rect x="5" y="14" width="6" height="6" rx="1"/><rect x="13" y="14" width="6" height="6" rx="1"/><rect x="9" y="7" width="6" height="6" rx="1" transform="rotate(12 12 10)"/>'),
+  share: svg('<circle cx="12" cy="13" r="6"/><circle cx="7" cy="7" r="2.3"/><circle cx="17" cy="7" r="2.3"/><circle cx="10" cy="12.5" r=".6"/><circle cx="14" cy="12.5" r=".6"/><path d="M10.5 15.5c.9.7 2.1.7 3 0"/>'),
+};
 const store = { get(key, fallback) { try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; } }, set(key, value) { try { localStorage.setItem(key, value); } catch {} } };
 const shuffle = () => {
   const result = STYLES.map((_, index) => index);
@@ -68,18 +82,19 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
   panel.id = 'practice';
   panel.setAttribute('aria-label', 'Baby Sim');
   document.getElementById('ui').append(panel);
-  // Mood pill and narration caption sit over the 3D scene.
-  const moodPill = document.createElement('div');
-  moodPill.id = 'moodPill'; moodPill.setAttribute('aria-live', 'polite');
+  // Heads-up display and narration caption sit over the 3D scene.
+  const hud = document.createElement('div');
+  hud.id = 'hud';
   const caption = document.createElement('div');
   caption.id = 'sceneCaption'; caption.setAttribute('aria-hidden', 'true');
-  document.getElementById('ui').append(moodPill, caption);
+  document.getElementById('ui').append(hud, caption);
   const header = document.createElement('header');
   header.id = 'appHeader';
-  header.innerHTML = `<a class="brand" href="#" aria-label="Baby Sim home"><span>Baby Sim</span></a><nav class="header-actions">
-    <button data-nav="library" id="libraryBtn">All scenes</button><button data-nav="journal" class="header-journal">Journal</button>
-    <button data-nav="help" class="header-icon" aria-label="How it works" title="How it works">?</button>
-    <button data-nav="sound" class="header-icon" aria-label="Turn sound on" title="Sound">🔇</button></nav>`;
+  header.innerHTML = `<a class="brand" href="#" aria-label="Baby Sim home"><i aria-hidden="true"></i><span>Baby Sim</span></a><nav class="header-actions">
+    <button data-nav="library" id="libraryBtn" class="icon-btn" aria-label="All scenes" title="All scenes">${ICON.grid}</button>
+    <button data-nav="journal" class="icon-btn" aria-label="Journal" title="Journal">${ICON.book}</button>
+    <button data-nav="help" class="icon-btn" aria-label="How it works" title="How it works">${ICON.help}</button>
+    <button data-nav="sound" class="icon-btn" aria-label="Turn sound on" title="Sound">${ICON.soundOff}</button></nav>`;
   document.body.append(header);
   const nav = header.querySelector('#libraryBtn');
   const soundBtn = header.querySelector('[data-nav="sound"]');
@@ -94,7 +109,6 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
   let order = shuffle();
   let journal = [];
   let lastPhase = '';
-  let storageAvailable = true;
   let customOpen = false;
   let comparing = false;
   let tipIndex = store.get(TIPS_KEY, '') ? TIPS.length : 0;
@@ -103,14 +117,15 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
   try {
     const saved = JSON.parse(localStorage.getItem(KEY) || localStorage.getItem('baby-sim-journal-v2') || '[]');
     if (Array.isArray(saved)) journal = saved.filter(entry => entry && typeof entry.name === 'string' && Array.isArray(entry.turns) && entry.turns.every(t => t && typeof t.text === 'string')).slice(-30);
-  } catch { storageAvailable = false; }
+  } catch {}
 
   const button = (text, action, css = 'opt') => `<button class="${css}" data-action="${action}">${text}</button>`;
   const named = text => String(text).replaceAll('Mia', name);
+  const firstSentence = text => String(text).split(/(?<=[.!?])\s/)[0];
   const lensId = () => getLens(stage);
   const lens = () => LENSES[lensId()];
   const info = (scenario = selected, st = stage) => SCENE_INFO?.[scenario.id]?.[st] || null;
-  const stageInfo = st => STAGE_INFO?.[st] || { short: STAGES[st].label.split(' · ')[0], ages: STAGES[st].label.split(' · ')[1] || '', icon: '👶', blurb: STAGES[st].note };
+  const stageInfo = st => STAGE_INFO?.[st] || { short: STAGES[st].label.split(' · ')[0], ages: STAGES[st].label.split(' · ')[1] || '', blurb: STAGES[st].note };
   const variant = () => getVariant(selected, stage, name);
   const extraTurns = () => (info()?.extraTurns || []).map(t => ({ ...t, speech: named(t.speech), choices: t.choices.map(named) }));
   const turns = () => turnLimit > 3 ? [...variant().turns, ...extraTurns()] : variant().turns;
@@ -121,8 +136,9 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
   const startMood = () => stage === 'infant' && ['bed','store'].includes(selected.id) ? 30 : stage === 'infant' ? 40 : 45;
   const moodAfter = upTo => history.slice(0, upTo).reduce((m, h) => Math.max(0, Math.min(100, m + (MOOD_STEP[h.approach] ?? 0))), startMood());
   const mood = () => moodAfter(history.length);
-  const crumb = () => `${escapeHTML(stageInfo(stage).short)} › ${escapeHTML(variant().name)} › ${round + 1} of ${turnLimit}`;
-  const disclaimer = () => `<p class="practice-note">One possible experience, not a prediction. One moment does not define a person. Check-ins are illustrative, not measured changes.</p>`;
+  const disclaimer = () => `<p class="fine">One possible experience, not a prediction. One moment doesn’t define anyone.</p>`;
+  const heartRow = (value, css = '') => `<span class="hearts ${css}" role="img" aria-label="${escapeHTML(name)} feels ${moodWord(value)}">${Array.from({length: 5}, (_, i) => `<i class="${i < hearts(value) ? 'on' : ''}">${ICON.heart}</i>`).join('')}</span>`;
+  const delta = (before, after) => { const d = hearts(after) - hearts(before); return d > 0 ? `<span class="delta up">+${d} ${ICON.heart}</span>` : d < 0 ? `<span class="delta down">${d} ${ICON.heart}</span>` : '<span class="delta">No change</span>'; };
 
  const props = new THREE.Group(); scene.add(props);
  const add = (geo,color,x,y,z)=>{const m=mesh(geo,mat(color));m.position.set(x,y,z);props.add(m);return m;};
@@ -143,29 +159,15 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
 
   const speech = () => moment().speech;
   const choices = () => moment().choices;
-  function context() {
-    if (!round) return variant().intro;
-    const previous = history[round - 1];
-    const reply = replyFor(round - 1, previous.approach);
-    if (reply) return reply;
-    if (stage === 'infant') return ({level1:`${name} loosens their hands and looks toward your voice.`,level2:`${name} pauses and reaches again.`,level3:`${name} fusses again as the response changes.`,level4:`${name} startles and watches your face.`,level5:`${name} pulls back and continues to fuss.`})[previous.approach] || `${name} pauses, then signals again.`;
-    return ({ level1:`${name} stays close and returns to the conversation.`, level2:`${name} pauses, then looks for a little more guidance.`, level3:`${name} checks whether the plan has changed again.`, level4:`${name} becomes quiet and watches your expression.`, level5:`${name} pulls back. The tension in the room remains.` })[previous.approach] || `${name} pauses before the next moment.`;
-  }
-  function welcome() {
+  function goTo(phase) {
     customOpen = false; comparing = false;
-    G.phase = 'welcome'; G.chosen = null;
+    G.phase = phase; G.chosen = null;
     run(['jump', -1]);
     decorate();
     render();
   }
-  function library() {
-    customOpen = false; comparing = false;
-    G.phase = 'library';
-    G.chosen = null;
-    run(['jump', -1]);
-    decorate();
-    render();
-  }
+  const welcome = () => goTo('welcome');
+  const library = () => goTo('library');
   function start(id, nextStage = stage) {
     const scenario = SCENARIOS.find(item => item.id === id);
     if (!scenario?.variants[nextStage]) return;
@@ -181,7 +183,7 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
     decorate();
     G.phase = 'intro';
     introAt = clock.now();
-    // The intro plays the opening and waits for the visitor instead of switching to the choices on its own.
+    // The opening plays and waits for the visitor instead of switching to the choices on its own.
     run(['jump', selected.id === 'tower' && ['toddler','preschool'].includes(stage) ? -1.6 : 7.9], ['play', 11.6]);
     render();
   }
@@ -208,10 +210,7 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
     run(['jump', 11.6]);
     render();
   }
-  function save() {
-    try { localStorage.setItem(KEY, JSON.stringify(journal)); }
-    catch { storageAvailable = false; }
-  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(journal)); } catch {} }
   function complete() {
     journal.push({name: variant().name, character: name, stage: STAGES[stage].label, lens: lens().title, date: new Date().toLocaleString(), turns: history.map(item => ({...item})), plan: ''});
     journal = journal.slice(-30);
@@ -220,112 +219,73 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
     render();
   }
   function styleName(entry) {
-    return entry.styleName || STYLES.find(style => style.id === entry.approach)?.name || ({connect:'Warm + clear (previous version)',control:'Firm + controlling (previous version)',give:'Give in (previous version)',distance:'Step away (previous version)',rescue:'Take over (previous version)'}[entry.approach]) || 'Not classified';
+    return entry.styleName || STYLES.find(style => style.id === entry.approach)?.name || 'Not classified';
   }
-  const pill = style => style ? `<span class="stylepill" style="background:${style.color}">${style.name}</span>` : '<span class="stylepill" style="background:#8b7d83">Not classified</span>';
-  function moodMeter(value, label = `How ${escapeHTML(name)} feels`) {
-    const [, face, word] = moodOf(value);
-    return `<div class="mood-meter"><span class="mood-face" aria-hidden="true">${face}</span><div><small>${label}</small><b>${word}</b><div class="mood-track"><i style="left:${value}%"></i></div></div></div>`;
-  }
-  function situation() {
-    const s = info();
-    if (!s) return '';
-    return `<div class="situation"><p><b>What’s happening</b>${escapeHTML(named(s.summary))}</p><p><b>What ${escapeHTML(name)} might need</b>${escapeHTML(named(s.need))}</p></div>`;
-  }
-  function tip() {
-    if (tipIndex >= TIPS.length) return '';
-    return `<div class="tip" role="note"><small>Tip ${tipIndex + 1} of ${TIPS.length}</small><p>${TIPS[tipIndex]}</p><div>${button(tipIndex < TIPS.length - 1 ? 'Next tip' : 'Got it', 'tip-next', 'text-button')}${tipIndex < TIPS.length - 1 ? button('Hide tips', 'tip-hide', 'text-button') : ''}</div></div>`;
-  }
-  function checkpoints(styleId = activeStyle()?.id, turn = moment()) {
-    const involved = lens().factors.filter(factor => turn.focus.includes(factor.id));
-    const others = lens().factors.length - involved.length;
-    return involved.map(factor => {
-      const direction = checkpointDirection(styleId, factor.id, true);
-      const arrow = direction.label === 'Supported' ? '↑' : ['Strained','Safety concern'].includes(direction.label) ? '↓' : '↔';
-      return `<div class="development-row ${direction.kind}"><div><b>${factor.name}</b><small>${factor.domain}</small></div><div class="direction-track" aria-hidden="true">${direction.position === null ? '' : `<i style="width:${direction.position}%"></i>`}</div><span class="direction-label">${direction.position === null ? '—' : arrow} ${direction.label}</span></div>`;
-    }).join('') + (others ? `<p class="areas-note">${others} other ${others === 1 ? 'area isn’t' : 'areas aren’t'} involved in this moment.</p>` : '');
-  }
-  function directionSummary(styleId) {
-    const labels = moment().focus.filter(id => lens().factors.some(f => f.id === id)).map(id => checkpointDirection(styleId, id, true).label);
-    const count = label => labels.filter(l => l === label).length;
-    if (count('Safety concern')) return 'Safety becomes the main concern';
-    if (count('Supported') === labels.length) return `Supports all ${labels.length} areas in this moment`;
-    if (count('Supported')) return `Supports ${count('Supported')} of ${labels.length} areas`;
-    if (count('Strained')) return `Strains ${count('Strained')} of ${labels.length} areas`;
-    return 'Mixed effect on this moment’s areas';
+  const pill = style => style ? `<span class="stylepill" style="--pill:${style.color}">${style.name}</span>` : '<span class="stylepill" style="--pill:#8b7d83">Not classified</span>';
+  function areaChips(styleId, turn = moment()) {
+    return lens().factors.filter(f => turn.focus.includes(f.id)).map(f => {
+      const d = checkpointDirection(styleId, f.id, true).label;
+      const kind = d === 'Supported' ? 'good' : d === 'Mixed' ? 'mixed' : 'bad';
+      return `<span class="chip ${kind}" title="${escapeHTML(f.focus)}">${kind === 'good' ? '↑' : kind === 'mixed' ? '↔' : '↓'} ${escapeHTML(f.name)}</span>`;
+    }).join('');
   }
   function compareView() {
     const mine = active()?.approach;
-    return `<div class="analysis-heading"><div class="eyebrow">${crumb()}</div><h2>All five responses</h2></div>
-      <p class="stage-note">The same moment, five ways. Your choice is highlighted. These are illustrations, not predictions.</p>
-      ${STYLES.map((style, k) => `<article class="compare-card ${style.id === mine ? 'mine' : ''}">${style.id === mine ? '<span class="mine-tag">Your choice</span>' : ''}${pill(style)}
+    return `<div class="sheet-head"><button class="icon-btn ghost" data-action="compare-close" aria-label="Back to my result">${ICON.back}</button><h2>Five ways to answer</h2></div>
+      <div class="compare-row">${STYLES.map((style, k) => `<article class="compare-card ${style.id === mine ? 'mine' : ''}">${pill(style)}${style.id === mine ? '<small class="mine-tag">You chose this</small>' : ''}
         <p class="compare-said">${escapeHTML(choices()[k])}</p>
         ${replyFor(round, style.id) ? `<p class="compare-reply">${escapeHTML(replyFor(round, style.id))}</p>` : ''}
-        <p class="compare-feel">“${imaginedPerspective(style.id, lensId())}”</p>
-        <small>${directionSummary(style.id)}</small></article>`).join('')}
-      <div class="analysis-actions">${button('Back to my result','compare-close','next-btn')}${button('Try a different response','retry','retry')}</div>`;
+        ${heartRow(Math.max(0, Math.min(100, moodAfter(round) + MOOD_STEP[style.id])), 'small')}</article>`).join('')}</div>
+      <div class="sheet-actions">${button('Back to my result','compare-close','next-btn')}${button('Try another answer','retry','retry')}</div>`;
   }
   function analysis() {
     if (comparing) return compareView();
     const style = activeStyle();
-    const entry = active();
     const last = round === turnLimit - 1;
     const canExtend = last && turnLimit === 3 && (info()?.extraTurns?.length || 0) > 0;
     const before = moodAfter(round), after = moodAfter(round + 1);
-    const why = `<p class="why"><b>Why:</b> ${responseExplanation(style?.id,lensId()).replaceAll('Mia',escapeHTML(name))}</p>`;
-    const features = style ? `<p><b>Response features:</b> ${style.features.join(', ')}. Level ${style.level}, ${style.fullName}. This describes the example response, not you as a parent.</p>` : '';
-    return `<div class="analysis-heading"><div class="eyebrow">${crumb()}</div><h2>How this might feel</h2></div>
-      <div class="feel-card"><div class="feel-top">${pill(style)}<span class="mood-change ${after >= before ? 'up' : 'down'}">${moodOf(after)[1]} ${after > before ? 'calmer' : after < before ? 'more upset' : 'no change'}</span></div>
-        <p class="feel-quote">“${imaginedPerspective(style?.id, lensId())}”</p>
-        <small>What ${escapeHTML(name)} might be ${stage === 'infant' ? 'experiencing (imagined; infants don’t think in words)' : 'thinking'}</small></div>
-      <div class="fb-row fb-you"><div class="ava">You</div><div><span class="who">You said</span><div class="line">${escapeHTML(entry.text)}</div>${entry.selfSelected ? '<small>Pattern selected by you; the text has not been interpreted.</small>' : ''}</div></div>
-      ${entry.reply ? `<div class="fb-row fb-child"><div class="ava">🧸</div><div><span class="who">${escapeHTML(name)}</span><div class="line">${escapeHTML(entry.reply)}</div></div></div>` : ''}
-      ${button(`<b>⇆</b><span><strong>Compare all five responses</strong><small>See how ${escapeHTML(name)} might react to each one</small></span>`,'compare','compare-btn')}
-      <div class="development-head"><h2>Areas this moment touches</h2><span>Illustrative directions, not measurements</span></div>
-      ${checkpoints()}
-      <div class="repair-note"><b>${style?.id === 'level5' ? 'Safety comes first' : 'A next step to practice'}</b><p>${repairSuggestion(style?.id,lensId())}</p></div>
-      <details class="factor-details more-detail"><summary>More detail</summary><p class="lens-note">${lens().title} <span>${lens().virtue}</span></p>${why}${features}${lens().factors.filter(f => moment().focus.includes(f.id)).map(f => `<p><b>${f.name}:</b> ${f.focus}</p>`).join('')}<p class="practice-note">Areas are educational prompts informed by Erikson and parenting research. They are not MAPS subscales or validated developmental checkpoints. <a href="${SOURCES[lens().source].url}" target="_blank" rel="noopener">Research for this lens</a> · ${button('Research notes','research','text-button inline')}</p></details>
-      ${canExtend ? `<p class="survey-more">${button('Keep going: 2 more exchanges in this scene','extend','text-button')}</p>` : ''}
-      <div class="analysis-actions">${button(last ? 'Finish and see the summary' : 'Next exchange','next','next-btn')}${button('Try a different response','retry','retry')}</div>`;
+    return `<div class="sheet-head">${pill(style)}${delta(before, after)}</div>
+      <h2 class="feel-quote">“${imaginedPerspective(style?.id, lensId())}”</h2>
+      <p class="feel-note">How ${escapeHTML(name)} might feel${stage === 'infant' ? ', imagined' : ''}</p>
+      <div class="chips">${areaChips(style?.id)}</div>
+      <p class="next-step"><b>${style?.id === 'level5' ? 'Safety first' : 'Try'}</b> ${repairSuggestion(style?.id,lensId())}</p>
+      <div class="sheet-actions">${button(last ? 'Finish scene' : 'Next','next','next-btn')}${button('Try another answer','retry','retry')}</div>
+      <div class="sheet-links">${button('Compare all five','compare','text-button')}${canExtend ? button('Keep going (2 more)','extend','text-button') : ''}</div>
+      <details class="more"><summary>Why?</summary><p>${responseExplanation(style?.id,lensId()).replaceAll('Mia',escapeHTML(name))}</p><p class="fine">${lens().title}. Areas are reflection prompts, not measurements. <a href="${SOURCES[lens().source].url}" target="_blank" rel="noopener">Research</a></p></details>`;
   }
-  function moodChart() {
+  function moodLine() {
     const points = [startMood(), ...history.map((_, i) => moodAfter(i + 1))];
-    const w = 300, h = 90, step = w / Math.max(1, points.length - 1);
+    const w = 300, h = 64, step = w / Math.max(1, points.length - 1);
     const xy = points.map((m, i) => [Math.round(i * step), Math.round(h - 8 - m / 100 * (h - 16))]);
-    return `<figure class="mood-chart"><svg viewBox="-12 0 ${w + 24} ${h}" role="img" aria-label="${escapeHTML(name)}’s mood across the scene: ${points.map(p => moodOf(p)[2]).join(', then ')}">
-      <line x1="0" x2="${w}" y1="${h / 2}" y2="${h / 2}" class="mid"/>
-      <polyline points="${xy.map(p => p.join(',')).join(' ')}"/>${xy.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="5"/><text x="${x}" y="${y - 10}">${moodOf(points[i])[1]}</text>`).join('')}</svg>
-      <figcaption>${escapeHTML(name)}’s mood: start → ${history.map((_, i) => `exchange ${i + 1}`).join(' → ')}</figcaption></figure>`;
+    return `<svg class="mood-line" viewBox="-10 0 ${w + 20} ${h}" role="img" aria-label="${escapeHTML(name)}’s mood: ${points.map(moodWord).join(', then ')}"><polyline points="${xy.map(p => p.join(',')).join(' ')}"/>${xy.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5"/>`).join('')}</svg>`;
   }
   function summary() {
-    const best = history.reduce((b, h) => (MOOD_STEP[h.approach] ?? -99) > (MOOD_STEP[b?.approach] ?? -99) ? h : b, null);
     const worst = history.reduce((w, h) => (MOOD_STEP[h.approach] ?? 99) < (MOOD_STEP[w?.approach] ?? 99) ? h : w, null);
-    const wentWell = best && ['level1','level2'].includes(best.approach) ? `${escapeHTML(best.text)} helped ${escapeHTML(name)} settle.` : `You stayed with the moment to the end. Trying a calmer response next time could change how ${escapeHTML(name)} feels.`;
+    const other = SCENARIOS.filter(s => s.variants[stage] && s.id !== selected.id && !journal.some(j => j.name === getVariant(s, stage, name).name))[0];
     // One card per exchange: what the child signalled, what you said, how they reacted and what it touched.
-    const turnsHtml = history.map((h,i) => {
+    const cards = history.map((h, i) => {
       const style = STYLES.find(s => s.id === h.approach);
-      const before = moodAfter(i), after = moodAfter(i + 1);
-      const areas = (h.analysis?.checkIns || []).filter(c => c.direction !== 'Not shown');
-      return `<article class="summary-card"><header><span class="summary-num">${i + 1}</span><div><small>Exchange ${i + 1} of ${history.length}</small>${pill(style)}</div><span class="mood-change ${after >= before ? 'up' : 'down'}">${moodOf(before)[1]} → ${moodOf(after)[1]}</span></header>
-        <dl>
-          <dt>${escapeHTML(name)} ${stage === 'infant' ? 'signalled' : 'said'}</dt><dd class="recap-prompt">${escapeHTML(h.prompt)}</dd>
-          <dt>You</dt><dd><b>${escapeHTML(h.text)}</b></dd>
-          ${h.reply ? `<dt>${escapeHTML(name)}’s reaction</dt><dd>${escapeHTML(h.reply)}</dd>` : ''}
-          <dt>How it might feel</dt><dd class="summary-feel">“${escapeHTML(h.analysis?.perspective || imaginedPerspective(h.approach, h.lens))}”</dd>
-          ${areas.length ? `<dt>Areas touched</dt><dd class="area-chips">${areas.map(c => `<span class="chip ${c.direction === 'Supported' ? 'good' : c.direction === 'Mixed' ? 'mixed' : 'bad'}">${c.direction === 'Supported' ? '↑' : c.direction === 'Mixed' ? '↔' : '↓'} ${escapeHTML(c.name)}</span>`).join('')}</dd>` : ''}
-          <dt>${h.approach === 'level5' ? 'Safety first' : 'Next step'}</dt><dd>${repairSuggestion(h.approach, h.lens)}</dd>
-        </dl></article>`;
+      const turn = turns()[i];
+      return `<article class="ex-card"><header><b>${i + 1}</b>${pill(style)}${delta(moodAfter(i), moodAfter(i + 1))}</header>
+        <p class="ex-child"><span>${escapeHTML(name)}</span>${escapeHTML(h.prompt)}</p>
+        <p class="ex-you"><span>You</span>${escapeHTML(h.text)}</p>
+        ${h.reply ? `<p class="ex-child"><span>${escapeHTML(name)}</span>${escapeHTML(h.reply)}</p>` : ''}
+        <p class="ex-feel">“${escapeHTML(h.analysis?.perspective || imaginedPerspective(h.approach, h.lens))}”</p>
+        ${turn ? `<div class="chips">${areaChips(h.approach, turn)}</div>` : ''}
+        <p class="next-step"><b>${h.approach === 'level5' ? 'Safety first' : 'Try'}</b> ${repairSuggestion(h.approach, h.lens)}</p></article>`;
     }).join('');
-    const counts = STYLES.map(s => [s, history.filter(h => h.approach === s.id).length]).filter(([, n]) => n);
-    return `<div class="eyebrow">Summary for ${escapeHTML(stageInfo(stage).short)}, ${escapeHTML(stageInfo(stage).ages)} years</div><h2>${variant().name}</h2>
-      <p class="stage-note">Practising ${escapeHTML(info() ? named(info().skill).toLowerCase() : lens().title)} over ${history.length} exchanges</p>
-      ${moodChart()}
-      <div class="pattern-row"><small>Your responses</small>${counts.map(([s, n]) => `<span class="stylepill" style="background:${s.color}">${s.name}${n > 1 ? ` ×${n}` : ''}</span>`).join('')}</div>
-      <div class="recap-grid"><div class="recap-good"><b>What went well</b><p>${wentWell}</p></div><div class="recap-next"><b>Try next time</b><p>${worst ? repairSuggestion(worst.approach, worst.lens) : ''}</p></div></div>
-      <h3 class="summary-sub">Each exchange</h3>${turnsHtml}
-      <div class="summary-actions">${button('↺ Replay with a different approach','replay','next-btn')}${button('Choose another scene','library','retry')}</div>
-      <label for="reflectionPlan">What would you try next time? (optional, saved only in this browser)</label><textarea id="reflectionPlan" maxlength="600" placeholder="When the moment gets difficult, I will…">${escapeHTML(journal.at(-1)?.plan || '')}</textarea>
-      <p class="practice-note">${storageAvailable ? 'The journal stays in this browser.' : 'Browser saving is unavailable. Download your journal to keep it.'}</p>${button('Download journal','download','retry')}${disclaimer()}`;
+    return `<div class="result-top"><p class="kicker">${escapeHTML(variant().name)}</p><h2>Scene complete</h2>${heartRow(mood(), 'big')}<p class="feel-note">${escapeHTML(name)} ended up feeling ${moodWord(mood())}</p>${moodLine()}</div>
+      ${worst && !['level1','level2'].includes(worst.approach) ? `<p class="next-step"><b>Try next time</b> ${repairSuggestion(worst.approach, worst.lens)}</p>` : ''}
+      <div class="sheet-actions">${other ? `<button class="next-btn" data-scenario="${other.id}">Next scene: ${escapeHTML(getVariant(other, stage, name).name)}</button>` : button('All scenes','library','next-btn')}${button('Replay this scene','replay','retry')}</div>
+      <h3>Each exchange</h3>${cards}
+      ${disclaimer()}`;
+  }
+  function sceneTiles() {
+    return SCENARIOS.filter(s => s.variants[stage]).map(s => {
+      const v = getVariant(s, stage, name), meta = info(s);
+      const done = journal.some(j => j.name === v.name && j.stage === STAGES[stage].label);
+      return `<button class="scene-tile ${done ? 'done' : ''}" data-scenario="${s.id}"><span class="art art-${s.id}">${SCENE_ART[s.id]}</span><b>${escapeHTML(v.name)}</b><small>${escapeHTML(meta ? named(firstSentence(meta.summary)) : v.setting)}</small>${done ? '<em>Played</em>' : ''}</button>`;
+    }).join('');
   }
   function render() {
     const phaseChanged = lastPhase !== G.phase;
@@ -337,74 +297,51 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
     nav.setAttribute('aria-current', G.phase === 'library' ? 'page' : 'false');
     panel.hidden = !inApp;
     if (G.phase === 'welcome') panel.innerHTML = `
-      <h2>Practice everyday parenting moments</h2>
-      <p class="lead">Baby Sim is a safe place to rehearse real moments with a virtual baby or toddler, from bedtime crying to spilled milk, and see how different responses might feel to them.</p>
-      <ol class="how-steps">
-        <li><span>1</span><div><b>Pick an age and a scene</b><small>Baby (0–1) or toddler (1–3), ${AGES.reduce((n, st) => n + SCENARIOS.filter(s => s.variants[st]).length, 0)} everyday scenes</small></div></li>
-        <li><span>2</span><div><b>Watch the moment</b><small>A short everyday situation plays out</small></div></li>
-        <li><span>3</span><div><b>Choose how you’d respond</b><small>Five responses, A to E, from warm to harsh</small></div></li>
-        <li><span>4</span><div><b>See how it might feel</b><small>The child reacts, and you can compare all five</small></div></li>
-      </ol>
-      <ul class="facts"><li>⏱ About 2 minutes a scene</li><li>🙂 No scores, no judgement</li><li>↺ Try any response again</li></ul>
-      <button class="next-btn wide" data-scenario="${RECOMMENDED.id}" data-stage="${RECOMMENDED.stage}">Try the recommended scene</button>
-      <small class="rec-note">${escapeHTML(stageInfo(RECOMMENDED.stage).short)}: ${escapeHTML(getVariant(SCENARIOS.find(s => s.id === RECOMMENDED.id), RECOMMENDED.stage, name).name)}</small>
-      ${button('Browse all scenes','library','retry')}
-      <div class="library-footer">${button('Design your child','design','text-button')}${button('About the research','research','text-button')}</div>`;
+      <h1 class="logo">Baby Sim</h1>
+      <p class="tagline">Practise real moments with a virtual baby or toddler.</p>
+      <ol class="how"><li><span>1</span>Watch</li><li><span>2</span>Respond</li><li><span>3</span>See how it feels</li></ol>
+      <button class="next-btn big" data-scenario="${RECOMMENDED.id}" data-stage="${RECOMMENDED.stage}">Play</button>
+      ${button('Choose a scene','library','retry')}
+      <p class="fine">About 2 minutes a scene. No scores. Nothing leaves your browser. ${button('About the research','research','text-button inline')}</p>`;
     if (G.phase === 'library') panel.innerHTML = `
       <h2>Choose a scene</h2>
-      <div class="name-row"><label for="characterName">Child’s name</label><input id="characterName" maxlength="24" value="${escapeHTML(name)}" autocomplete="off"></div>
-      <div class="age-tabs" role="tablist" aria-label="Age stage" style="--ages:${AGES.length}">${AGES.map(id => { const s = stageInfo(id); return `<button role="tab" aria-selected="${id === stage}" data-age="${id}"><span aria-hidden="true">${s.icon}</span><b>${escapeHTML(s.short)}</b><small>${escapeHTML(s.ages)}</small></button>`; }).join('')}</div>
-      <p class="stage-blurb">${escapeHTML(stageInfo(stage).blurb)}</p>
-      <div class="scene-cards">${SCENARIOS.filter(s => s.variants[stage]).map(s => { const v = getVariant(s,stage,name); const meta = info(s); const done = journal.some(j => j.name === v.name && j.stage === STAGES[stage].label); return `<button class="scene-card" data-scenario="${s.id}"><span class="scene-icon" aria-hidden="true">${sceneIcon(s.id, stage)}</span><span class="scene-text"><b>${escapeHTML(v.name)}${done ? ' <em>✓ Done</em>' : ''}</b><span>${escapeHTML(meta ? named(meta.summary) : v.intro)}</span><small>${meta ? `Practises ${escapeHTML(meta.skill.toLowerCase())}. ` : ''}About 2 minutes${meta?.extraTurns ? ', with a longer version' : ''}.</small></span><span class="scene-arrow" aria-hidden="true">›</span></button>`; }).join('')}</div>
-      <div class="library-footer">${button('Design your child','design','text-button')}${button('How it works','welcome','text-button')}${button('About the research','research','text-button')}</div>`;
-    if (G.phase === 'intro') {
-      const beats = (info()?.beats || [variant().intro]).map(named);
-      panel.innerHTML = `<div class="eyebrow">${crumb()}</div><h2>${variant().name}</h2>
-        <ol class="beats">${beats.map((b, i) => `<li style="animation-delay:${0.2 + i * 1.6}s">${escapeHTML(b)}</li>`).join('')}</ol>
-        ${situation()}
-        <button class="next-btn wide ready" data-action="skip" style="animation-delay:${0.2 + beats.length * 1.6}s">Show my options</button>
-        ${button('Back to all scenes','library','text-button')}`;
-    }
+      <div class="age-toggle" role="tablist" aria-label="Age">${AGES.map(id => { const s = stageInfo(id); return `<button role="tab" aria-selected="${id === stage}" data-age="${id}"><b>${escapeHTML(s.short)}</b><small>${escapeHTML(s.ages)} yrs</small></button>`; }).join('')}</div>
+      <div class="scene-grid">${sceneTiles()}</div>
+      <div class="name-row"><label for="characterName">Child’s name</label><input id="characterName" maxlength="24" value="${escapeHTML(name)}" autocomplete="off">${button('Change look','design','text-button')}</div>`;
+    if (G.phase === 'intro') panel.innerHTML = `
+      ${button('What do you do?','skip','next-btn big ready')}
+      ${info() ? `<details class="more"><summary>What’s going on?</summary><p>${escapeHTML(named(info().summary))}</p><p><b>${escapeHTML(name)} might need:</b> ${escapeHTML(named(info().need))}</p></details>` : ''}`;
     if (G.phase === 'choose') panel.innerHTML = `
-      <div class="eyebrow">${crumb()}</div>
-      <h2>How would you respond?</h2>
-      <div class="progress">${Array.from({length: turnLimit}, (_, i) => `<span class="${i <= round ? 'active' : ''}"></span>`).join('')}</div>
-      ${round ? `<p class="scene-context">${escapeHTML(context())}</p>` : ''}
-      <blockquote class="mobile-dialogue"><small>${escapeHTML(name)} ${stage === 'infant' ? 'signals' : 'says'}</small>${escapeHTML(speech())}</blockquote>
-      ${info() ? `<details class="need-hint"><summary>What might ${escapeHTML(name)} need?</summary><p>${escapeHTML(named(info().need))}</p></details>` : ''}
-      ${tip()}
-      ${order.map((index,position) => `<button class="opt dialogue-choice" data-choice="${index}"><b>${String.fromCharCode(65+position)}</b><span>${escapeHTML(choices()[index])}</span></button>`).join('')}
-      ${button('Write your own…','custom','opt write')}
-      <p class="choice-help">Choose the one closest to what you’d really say. Keys A–E work too.</p>`;
+      <p class="child-line"><span>${escapeHTML(name)}</span>${escapeHTML(speech())}</p>
+      ${tipIndex < TIPS.length ? `<p class="tip">${TIPS[tipIndex]} ${button('OK','tip-next','text-button inline')}</p>` : ''}
+      <div class="choices">${order.map((index,position) => `<button class="choice" data-choice="${index}"><b>${String.fromCharCode(65+position)}</b><span>${escapeHTML(choices()[index])}</span></button>`).join('')}</div>
+      <div class="tray-links">${info() ? `<details class="hint"><summary>Hint</summary><p>${escapeHTML(named(info().need))}</p></details>` : ''}${button('Say something else','custom','text-button')}</div>`;
     if (G.phase === 'react') {
       const entry = active();
-      panel.innerHTML = `<div class="eyebrow">${crumb()}</div><h2>${escapeHTML(name)} reacts…</h2>
-        <div class="said-card"><small>You said</small><p>${escapeHTML(entry.text)}</p></div>
-        ${entry.reply ? `<div class="reply-card"><small>${escapeHTML(name)}</small><p>${escapeHTML(entry.reply)}</p></div>` : `<p class="scene-context">${activeStyle()?.id === 'level5' ? 'The moment feels tense. No physical harm is animated.' : 'Take a moment to notice the expression and the space between you.'}</p>`}
-        ${moodMeter(mood())}
-        ${button('See how this might feel','analyze','next-btn wide')}`;
+      panel.innerHTML = `<p class="you-line"><span>You</span>${escapeHTML(entry.text)}</p>
+        ${entry.reply ? `<p class="child-line reply"><span>${escapeHTML(name)}</span>${escapeHTML(entry.reply)}</p>` : ''}
+        <div class="react-row">${delta(moodAfter(round), mood())}${button('How did that feel?','analyze','next-btn')}</div>`;
     }
     if (G.phase === 'analysis') panel.innerHTML = analysis();
     if (G.phase === 'summary') panel.innerHTML = summary();
-    if (G.phase === 'journal') panel.innerHTML = `<h2>${journal.length} completed ${journal.length === 1 ? 'scene' : 'scenes'}</h2>${journal.length ? journal.slice().reverse().map(j => `<article class="journal-turn"><b>${escapeHTML(j.name)}</b><small>${escapeHTML(j.stage)} ${j.lens ? '· '+escapeHTML(j.lens) : ''} · ${escapeHTML(j.date)}</small>${j.turns.map(h => `<p><small>${escapeHTML(styleName(h))}${h.selfSelected ? ' · self-selected' : ''}</small>${escapeHTML(h.text)}</p>`).join('')}${j.plan ? `<p class="context">Next time: ${escapeHTML(j.plan)}</p>` : ''}</article>`).join('') : '<p>Finish a scene to see it here. Everything stays in this browser.</p>'}${button('Back to all scenes','library','next-btn')}${button('Download journal','download','retry')}`;
-    if (G.phase === 'research') panel.innerHTML = `<h2>What informs this simulator?</h2><p>${stageNote}</p><p>The five response patterns come from the supplied MAPS-based workbooks. Original MAPS has seven practice dimensions, not five clinical parenting types. The workbook’s level cutoffs are interpretive.</p><p>MAPS’s original sample covered ages 3–17. Infant and younger-toddler examples are educational adaptations.</p><p>Erikson supplies a theoretical lens. The check-in factors, mood meter, and child reactions are authored for reflection; they are not a developmental test or measured before-and-after changes.</p><p>Older ages currently use the same stylized seated avatar. Scenarios and dialogue change with age.</p><ul class="source-list">${SOURCES.map(s => `<li><a href="${s.url}" target="_blank" rel="noopener">${s.title}</a></li>`).join('')}</ul><p><a href="research/parenting-development-review.md" target="_blank">Read the full article review and mapping</a></p>${G.chosen && history[round] ? button('Back to this analysis','back-analysis','next-btn') : button('Back to all scenes','library','next-btn')}`;
+    if (G.phase === 'journal') panel.innerHTML = `<h2>Your journal</h2>${journal.length ? journal.slice().reverse().map(j => `<article class="ex-card"><header><b>${escapeHTML(j.name)}</b><small>${escapeHTML(j.date)}</small></header>${j.turns.map(h => `<p class="ex-you"><span>${escapeHTML(styleName(h))}</span>${escapeHTML(h.text)}</p>`).join('')}</article>`).join('') : '<p>Finish a scene and it shows up here. It stays in this browser.</p>'}<div class="sheet-actions">${button('All scenes','library','next-btn')}${journal.length ? button('Download','download','retry') : ''}</div>`;
+    if (G.phase === 'research') panel.innerHTML = `<h2>What this is based on</h2><p>${stageNote}</p><p>The five response types come from a MAPS-based workbook. MAPS measures seven parenting practices; the five levels used here are an interpretation, not a clinical type. Baby and toddler examples adapt it for younger ages.</p><p>The hearts, reactions, and areas are written for reflection. They aren’t a test or a measurement.</p><ul class="source-list">${SOURCES.map(s => `<li><a href="${s.url}" target="_blank" rel="noopener">${s.title}</a></li>`).join('')}</ul><p><a href="research/parenting-development-review.md" target="_blank">Full article review</a></p><div class="sheet-actions">${G.chosen && history[round] ? button('Back to the scene','back-analysis','next-btn') : button('All scenes','library','next-btn')}</div>`;
     panel.scrollTop = 0;
     if (phaseChanged) {
-      if (matchMedia('(max-width:700px)').matches) window.scrollTo(0,0);
-      const heading = panel.querySelector('h2');
-      if (heading) { heading.tabIndex = -1; heading.focus({preventScroll:true}); }
+      const heading = panel.querySelector('h1,h2,button');
+      if (heading) { if (!/BUTTON/.test(heading.tagName)) heading.tabIndex = -1; heading.focus({preventScroll:true}); }
     }
   }
   function renderCustom() {
     customOpen = true;
-    panel.innerHTML = `<div class="eyebrow">${crumb()}</div><h2>What would you say?</h2><label for="customText">Your words or action</label><textarea id="customText" maxlength="500"></textarea><label for="customStyle">Optional: which pattern should the demo illustrate?</label><select id="customStyle"><option value="-1">Leave unclassified</option>${STYLES.map((s,i) => `<option value="${i}">${s.name}</option>`).join('')}</select><p class="practice-note">The prototype does not interpret your words. Selecting a pattern only chooses an illustration for reflection.</p>${button('Say it','send','next-btn')}${button('Back to choices','cancel','retry')}`;
+    panel.innerHTML = `<label for="customText">What would you say?</label><textarea id="customText" maxlength="500" placeholder="Your words or action"></textarea><label for="customStyle">Which response type is closest? (optional)</label><select id="customStyle"><option value="-1">Leave it open</option>${STYLES.map((s,i) => `<option value="${i}">${s.name}</option>`).join('')}</select><p class="fine">The simulator doesn’t read your words; the type you pick decides the reaction.</p><div class="sheet-actions">${button('Say it','send','next-btn')}${button('Back','cancel','retry')}</div>`;
     document.getElementById('customText').focus();
   }
   function nextRound() { round++; order = shuffle(); comparing = false; G.chosen = null; G.phase = 'choose'; run(['jump',11.6]); render(); }
   panel.oninput = event => {
-    if (event.target.id === 'characterName') name = event.target.value.trim().slice(0,24) || 'Mia';
-    if (event.target.id === 'reflectionPlan' && journal.length) { journal.at(-1).plan = event.target.value; save(); }
+    if (event.target.id === 'characterName') { name = event.target.value.trim().slice(0,24) || 'Mia'; }
   };
+  panel.onchange = event => { if (event.target.id === 'characterName') render(); };
   panel.onclick = event => {
     const target = event.target.closest('button');
     if (!target || target.disabled) return;
@@ -424,7 +361,6 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
       case 'compare': comparing = true; render(); break;
       case 'compare-close': comparing = false; render(); break;
       case 'tip-next': tipIndex++; if (tipIndex >= TIPS.length) store.set(TIPS_KEY, '1'); render(); break;
-      case 'tip-hide': tipIndex = TIPS.length; store.set(TIPS_KEY, '1'); render(); break;
       case 'extend':
         if (G.phase !== 'analysis') break;
         turnLimit = 3 + info().extraTurns.length; nextRound();
@@ -465,7 +401,7 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
     if (where === 'library') library();
     if (where === 'journal') { G.phase = 'journal'; render(); }
     if (where === 'help') welcome();
-    if (where === 'sound') { const on = sound.toggle(); soundBtn.textContent = on ? '🔊' : '🔇'; soundBtn.setAttribute('aria-label', on ? 'Turn sound off' : 'Turn sound on'); }
+    if (where === 'sound') { const on = sound.toggle(); soundBtn.innerHTML = on ? ICON.soundOn : ICON.soundOff; soundBtn.setAttribute('aria-label', on ? 'Turn sound off' : 'Turn sound on'); }
   };
   document.addEventListener('keydown', event => {
     if (G.phase !== 'choose' || customOpen || event.repeat || event.metaKey || event.ctrlKey || event.altKey || ['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName)) return;
@@ -474,7 +410,7 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
   });
   ui.startBtn.onclick = library;
   const restart = document.getElementById('restartBtn');
-  restart.textContent = 'All scenes';
+  restart.textContent = 'Leave scene';
   restart.title = 'Back to all scenes';
   restart.onclick = library;
   ui.startBtn.textContent = 'Choose a scene';
@@ -506,6 +442,7 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
     if (G.phase === 'react' && stage !== 'infant' && sinceReply > 0 && sinceReply < 2.6) t.talk = 1;
     return t;
   }
+  let hudKey = '';
   return {
     library,
     // Smoothed emotion weights for the 3D child, or null outside a scene.
@@ -522,17 +459,19 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
       if (G.phase === 'create') clock.renderCreator();
       show(ui.chapter,false);
       const inScene = ['intro','choose','react','analysis'].includes(G.phase);
-      moodPill.hidden = !inScene || !variant();
-      if (!moodPill.hidden) moodPill.innerHTML = moodMeter(mood());
-      // Speech bubble: the child's line while choosing, their reply after a response.
+      hud.hidden = !inScene;
+      const key = inScene ? `${variant().name}|${round}|${turnLimit}|${mood()}|${name}` : '';
+      if (inScene && key !== hudKey) hud.innerHTML = `<div class="hud-scene"><b>${escapeHTML(variant().name)}</b><span class="dots">${Array.from({length: turnLimit}, (_, i) => `<i class="${i < round ? 'done' : i === round ? 'now' : ''}"></i>`).join('')}</span></div>${heartRow(mood())}`;
+      hudKey = key;
+      // Speech bubble over the child: their line while choosing, their reply after a response.
       const reply = active()?.reply;
       const bubbleText = G.phase === 'choose' && !customOpen ? speech() : G.phase === 'react' && reply && W > replyAt ? reply : '';
       show(ui.bubble, !!bubbleText);
       if (bubbleText && ui.bubble.textContent !== bubbleText) ui.bubble.textContent = bubbleText;
       // Opening narration plays as captions over the scene.
-      const beats = G.phase === 'intro' ? (info()?.beats || []).map(named) : [];
-      const beat = beats[Math.min(beats.length - 1, Math.floor((W - introAt - 0.2) / 1.6))];
-      caption.textContent = beat || '';
+      const beats = G.phase === 'intro' ? (info()?.beats || [variant().intro]).map(named) : [];
+      const beat = beats[Math.min(beats.length - 1, Math.floor((W - introAt - 0.2) / 1.8))];
+      if (caption.textContent !== (beat || '')) caption.textContent = beat || '';
       caption.classList.toggle('show', !!beat && W - introAt > 0.2);
       props.visible = ['welcome','library','intro','choose','react','analysis','summary'].includes(G.phase) && selected.id !== 'tower';
       blocks.forEach(block => { block.visible = ['welcome','library','intro','choose','react','analysis'].includes(G.phase) && selected.id === 'tower'; });

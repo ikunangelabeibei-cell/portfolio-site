@@ -1358,8 +1358,8 @@ function update(t, W, dt) {
   if (emo) { camera.position.lerp(camClose, emo.push * 0.6); tmp.lerp(tgtClose, emo.push * 0.4); }   // slow push-in during the scene
   camera.position.x += Math.sin(W * 0.35) * 0.12;
   camera.position.y += Math.sin(W * 0.27) * 0.04;
-  // Phones have no side bubble, so center the child and step back to keep the whole head visible.
-  if (narrow && G.phase !== 'title') { camera.position.z += 0.9; camera.position.y += 0.15; tmp.y += 0.1; }
+  // On phones the dialogue tray covers the lower half, so step back and lift the child into the top of the frame.
+  if (narrow && G.phase !== 'title') { camera.position.z += 2.8; camera.position.y += 0.3; tmp.y -= 1.25; tmp.x -= 0.75; }
   else if (G.phase !== 'title') tmp.x -= 0.65;
   camera.lookAt(tmp);
 
