@@ -269,6 +269,7 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
   ui.startBtn.onclick = library;
   nav.onclick = library;
   document.getElementById('restartBtn').onclick = () => {
+    if (SURVEY) { library(); return; }
     G.phase = 'title'; G.chosen = null; customOpen = false; props.visible = false;
     run(['jump',clock.titleAt]); render();
   };
