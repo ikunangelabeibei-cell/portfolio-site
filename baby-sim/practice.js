@@ -300,11 +300,10 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
     if (G.phase === 'welcome') panel.innerHTML = `
       <h1 class="logo">Baby Sim</h1>
       <p class="tagline">Practise real moments with a virtual baby or toddler.</p>
-      <ol class="how"><li><span>1</span>Watch</li><li><span>2</span>Respond</li><li><span>3</span>See how it feels</li></ol>
       <div class="name-row"><label for="characterName">Child’s name</label><input id="characterName" maxlength="24" value="${escapeHTML(name)}" autocomplete="off"></div>
-      ${button('Customize your baby','design','retry')}
-      <button class="next-btn big" data-scenario="${RECOMMENDED.id}" data-stage="${RECOMMENDED.stage}">Play</button>
-      ${button('Choose a scene','library','retry')}
+      <button class="retry step-btn" data-action="design"><i>1</i>Customize your baby</button>
+      <button class="retry step-btn" data-action="library"><i>2</i>Choose a scene</button>
+      <button class="next-btn big step-btn" data-scenario="${RECOMMENDED.id}" data-stage="${RECOMMENDED.stage}"><i>3</i>Play</button>
       <p class="fine">About 2 minutes a scene. No scores. Nothing leaves your browser. ${button('About the research','research','text-button inline')}</p>`;
     if (G.phase === 'library') panel.innerHTML = `
       <h2>Choose a scene</h2>

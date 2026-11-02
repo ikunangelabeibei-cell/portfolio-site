@@ -205,3 +205,6 @@ body[data-phase="create"] #creator { position:fixed; right:16px; top:calc(var(--
 /* Desktop shows the child's line in the bubble over the scene, so the tray doesn't repeat it. */
 @media (min-width:701px) { #practice[data-phase="choose"] .child-line { display:none; } #practice[data-phase="react"] .child-line { display:none; } }
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; } }
+
+.step-btn { display:flex !important; align-items:center; justify-content:center; gap:10px; }
+.step-btn i { font-style:normal; width:28px; height:28px; flex:none; border-radius:50%; background:var(--sun); color:var(--ink); border:2.5px solid var(--ink); display:grid; place-items:center; font-size:15px; }
