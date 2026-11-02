@@ -166,6 +166,7 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
     decorate();
     render();
   }
+  let designFrom = 'library';
   const welcome = () => goTo('welcome');
   const library = () => goTo('library');
   function start(id, nextStage = stage) {
@@ -300,6 +301,8 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
       <h1 class="logo">Baby Sim</h1>
       <p class="tagline">Practise real moments with a virtual baby or toddler.</p>
       <ol class="how"><li><span>1</span>Watch</li><li><span>2</span>Respond</li><li><span>3</span>See how it feels</li></ol>
+      <div class="name-row"><label for="characterName">Child’s name</label><input id="characterName" maxlength="24" value="${escapeHTML(name)}" autocomplete="off"></div>
+      ${button('Customize your baby','design','retry')}
       <button class="next-btn big" data-scenario="${RECOMMENDED.id}" data-stage="${RECOMMENDED.stage}">Play</button>
       ${button('Choose a scene','library','retry')}
       <p class="fine">About 2 minutes a scene. No scores. Nothing leaves your browser. ${button('About the research','research','text-button inline')}</p>`;
@@ -355,7 +358,7 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
       case 'welcome': welcome(); break;
       case 'research': G.phase = 'research'; render(); break;
       case 'back-analysis': G.phase = 'analysis'; render(); break;
-      case 'design': G.phase = 'create'; run(['jump',clock.createAt]); render(); break;
+      case 'design': designFrom = G.phase; G.phase = 'create'; run(['jump',clock.createAt]); render(); break;
       case 'replay': start(selected.id); break;
       case 'analyze': G.phase = 'analysis'; render(); break;
       case 'compare': comparing = true; render(); break;
@@ -408,12 +411,12 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
     const position = 'abcde'.indexOf(event.key.toLowerCase());
     if (position >= 0) choose(order[position]);
   });
-  ui.startBtn.onclick = library;
+  ui.startBtn.onclick = () => (designFrom === 'welcome' ? welcome() : library());
   const restart = document.getElementById('restartBtn');
   restart.textContent = 'Leave scene';
   restart.title = 'Back to all scenes';
   restart.onclick = library;
-  ui.startBtn.textContent = 'Choose a scene';
+  ui.startBtn.textContent = 'Done →';
   if (store.get(SEEN_KEY, '')) library(); else welcome();
 
   // Emotion targets for the 3D child. The page blends toward these each frame.
