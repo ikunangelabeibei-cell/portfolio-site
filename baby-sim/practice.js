@@ -416,7 +416,7 @@ export function createPractice({ G, ui, show, run, THREE, scene, mesh, mat, bloc
   restart.title = 'Back to all scenes';
   restart.onclick = library;
   ui.startBtn.textContent = 'Done →';
-  if (store.get(SEEN_KEY, '')) library(); else welcome();
+  welcome();
 
   // Emotion targets for the 3D child. The page blends toward these each frame.
   const emo = { happy: 0, sad: 0, worried: 0, sob: 0, surprise: 0, comfort: 0, talk: 0, push: 0 };
