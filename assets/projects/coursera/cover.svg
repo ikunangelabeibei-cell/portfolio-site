@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 800">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fdf3f4"/><stop offset=".6" stop-color="#fbe8eb"/><stop offset="1" stop-color="#f6dde2"/></linearGradient>
+<radialGradient id="glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#A51C30" stop-opacity=".18"/><stop offset="1" stop-color="#A51C30" stop-opacity="0"/></radialGradient></defs>
+<rect width="1600" height="800" fill="url(#bg)"/>
+<circle cx="1130" cy="400" r="320" fill="url(#glow)"/>
+<!-- classroom: one room, one cohort -->
+<g transform="translate(250,230)" stroke="#1b2938" stroke-width="3">
+  <rect width="380" height="340" rx="18" fill="#fff"/>
+  <rect x="40" y="36" width="300" height="70" rx="8" fill="#f4c6cd"/>
+  <g fill="#1b2938" stroke="none"><circle cx="90" cy="170" r="16"/><circle cx="160" cy="170" r="16"/><circle cx="230" cy="170" r="16"/><circle cx="300" cy="170" r="16"/><circle cx="90" cy="250" r="16"/><circle cx="160" cy="250" r="16"/><circle cx="230" cy="250" r="16"/><circle cx="300" cy="250" r="16"/></g>
+</g>
+<path d="M660,400 C760,330 860,330 950,380" fill="none" stroke="#A51C30" stroke-width="4" stroke-dasharray="4 14" stroke-linecap="round"/>
+<path d="M940,362 L962,386 L932,394" fill="none" stroke="#A51C30" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<!-- online: a globe of scattered, varied learners -->
+<g stroke="#1b2938" stroke-width="3" fill="none"><circle cx="1150" cy="400" r="190" fill="#fff"/><ellipse cx="1150" cy="400" rx="80" ry="190"/><line x1="960" y1="400" x2="1340" y2="400"/><path d="M985,305 Q1150,350 1315,305"/><path d="M985,495 Q1150,450 1315,495"/></g>
+<g stroke="#1b2938" stroke-width="3"><circle cx="1060" cy="300" r="15" fill="#A51C30"/><circle cx="1240" cy="330" r="11" fill="#f4c6cd"/><circle cx="1110" cy="470" r="18" fill="#f9dde1"/><circle cx="1260" cy="480" r="13" fill="#fff"/><circle cx="1180" cy="250" r="9" fill="#fff"/><circle cx="1020" cy="420" r="10" fill="#f4c6cd"/><circle cx="1200" cy="560" r="10" fill="#A51C30"/></g>
+<path d="M1390,210 Q1390,230 1410,230 Q1390,230 1390,250 Q1390,230 1370,230 Q1390,230 1390,210Z" fill="#c9a14a"/><path d="M940,560 Q940,572 952,572 Q940,572 940,584 Q940,572 928,572 Q940,572 940,560Z" fill="#A51C30"/>
+</svg>

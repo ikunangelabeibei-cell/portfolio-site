@@ -640,3 +640,23 @@ p { font-size: 1.02rem; }
 @media (min-width: 1001px) { .refl-hero .wrap { max-width: 1200px; padding-left: calc(var(--gutter) + 288px); } }  /* line up with the post column */
 .teaser-more { margin: 1rem 0 0; font-family: var(--font-body); font-size: .9rem; }
 .post + .post { margin-top: clamp(48px, 6vw, 80px); padding-top: clamp(40px, 5vw, 64px); border-top: 1px solid var(--grey-300); }
+
+/* ===== Design-document tables (audience analysis) ===== */
+.table-note { font-family: var(--font-body); font-size: .92rem; color: var(--text-muted); margin: 0 0 .9rem; }
+.table-note.after { margin: .9rem 0 0; }
+.dtable-wrap { overflow-x: auto; border: 1px solid var(--grey-300); border-radius: 14px; background: #fff; }
+.dtable { width: 100%; border-collapse: collapse; font-family: var(--font-serif); font-size: 1rem; min-width: 520px; }
+.dtable th, .dtable td { text-align: left; vertical-align: top; padding: 13px 16px; border-bottom: 1px solid var(--grey-300); line-height: 1.5; }
+.dtable tbody tr:last-child th, .dtable tbody tr:last-child td { border-bottom: 0; }
+.dtable thead th { font-family: var(--font-body); font-size: .74rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); background: var(--grey-100); }
+.dtable tbody th { font-family: var(--font-body); font-weight: 600; font-size: .92rem; color: var(--black); width: 30%; }
+.dtable-cmp td:last-child { background: var(--tint); }
+.dtable-design td { color: var(--black); }
+.dtable-design tbody th::after { content: "→"; color: var(--accent); margin-left: .5em; }
+.assume { display: inline-block; margin-left: .4em; font-size: .66rem; letter-spacing: .06em; color: var(--accent); background: var(--tint); border: 1px dashed var(--accent-soft); border-radius: 999px; padding: .15em .6em; vertical-align: 1px; }
+.checklist { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.checklist li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start; background: #fff; border: 1px solid var(--grey-300); border-radius: 12px; padding: 14px 16px; font-family: var(--font-serif); font-size: 1.02rem; line-height: 1.5; }
+.checklist .box { width: 18px; height: 18px; margin-top: 3px; border: 2px solid var(--accent); border-radius: 4px; }
+.now-link { display: inline-block; margin-top: .7rem; font-family: var(--font-body); font-size: .92rem; font-weight: 500; color: var(--accent); }
+.now-link:hover { text-decoration: underline; }
+section.block { padding-block: 0; }
