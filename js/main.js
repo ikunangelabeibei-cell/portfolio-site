@@ -99,3 +99,31 @@ $$('.copy-email').forEach(b => b.addEventListener('click', async () => {
     const t = b.textContent; b.textContent = 'Copied!'; setTimeout(() => (b.textContent = t), 1800);
   } catch { location.href = 'mailto:' + b.dataset.email; }
 }));
+
+// Case study: step-by-step journey
+document.querySelectorAll('.stepper').forEach(st => {
+  const tabs = [...st.querySelectorAll('.st-tabs button')], panels = [...st.querySelectorAll('.st-panel')];
+  let cur = 0;
+  const show = i => {
+    cur = (i + tabs.length) % tabs.length;
+    tabs.forEach((t, k) => t.setAttribute('aria-selected', String(k === cur)));
+    panels.forEach((p, k) => (p.hidden = k !== cur));
+    tabs[cur].scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+  };
+  tabs.forEach((t, k) => t.addEventListener('click', () => show(k)));
+  st.querySelector('.st-prev')?.addEventListener('click', () => show(cur - 1));
+  st.querySelector('.st-next')?.addEventListener('click', () => show(cur + 1));
+  st.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') { show(cur + 1); tabs[cur].focus(); }
+    if (e.key === 'ArrowLeft') { show(cur - 1); tabs[cur].focus(); }
+  });
+});
+
+// Case study: prototype viewer tabs
+document.querySelectorAll('.viewer').forEach(v => {
+  const frame = v.querySelector('iframe'), open = v.querySelector('.v-open');
+  v.querySelectorAll('.v-tabs button').forEach(b => b.addEventListener('click', () => {
+    v.querySelectorAll('.v-tabs button').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+    frame.src = b.dataset.src; if (open) open.href = b.dataset.src;
+  }));
+});

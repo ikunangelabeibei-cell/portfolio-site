@@ -10,7 +10,7 @@
     --green: #00693e; --green-dark: #12372a; --blue: #002d72; --amber: #f2a900; --warn-bg: #fff4d6; --warn-ink: #5c3d00;
     --field: #ffffff;
   }
-  @media (prefers-color-scheme: dark) {
+  @media (prefers-color-scheme: dark) and (min-width: 100000px) {
     :root { --bg: #14201b; --panel: #1c2b24; --ink: #eef3f0; --muted: #a9b8b0; --line: #35473e;
       --green: #4cc38a; --green-dark: #eef3f0; --blue: #8fb4ff; --warn-bg: #3a2f10; --warn-ink: #ffd98a; --field: #101a16; }
   }
@@ -36,7 +36,7 @@
   .ev .row label { margin: 6px 0 2px; font-size: 13px; }
   .ev h3 { margin: 0 0 4px; font-size: 14px; color: var(--blue); display: flex; justify-content: space-between; align-items: center; }
   button { font: inherit; font-size: 15px; font-weight: 600; border-radius: 8px; border: 1px solid var(--green); background: var(--green); color: #fff; padding: 9px 16px; cursor: pointer; }
-  @media (prefers-color-scheme: dark) { button { color: #0b1f16; } }
+  @media (prefers-color-scheme: dark) and (min-width: 100000px) { button { color: #0b1f16; } }
   button.ghost { background: transparent; color: var(--green); }
   button.small { padding: 3px 10px; font-size: 13px; }
   button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid var(--amber); outline-offset: 1px; }
