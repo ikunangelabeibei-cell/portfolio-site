@@ -660,3 +660,4 @@ p { font-size: 1.02rem; }
 .now-link { display: inline-block; margin-top: .7rem; font-family: var(--font-body); font-size: .92rem; font-weight: 500; color: var(--accent); }
 .now-link:hover { text-decoration: underline; }
 section.block { padding-block: 0; }
+.post-related { font-family: var(--font-body); font-size: .92rem; margin: 1.2rem 0 0; }
