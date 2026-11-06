@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 2 Overview</title>
+<style>
+  :root {
+    --bg: #eef2f6; --card: #ffffff; --ink: #1f1f1f; --muted: #5b6670; --line: #dde3ea;
+    --blue: #0056d2; --blue-soft: #e8f0fe; --navy: #002a5c; --on-navy: #ffffff;
+    --on-accent: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111820; --card: #1a232d; --ink: #eef2f6; --muted: #a7b3bf; --line: #2e3a46;
+      --blue: #7fb0ff; --blue-soft: #1d2c44; --navy: #12376e; --on-accent: #0b1620;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif; }
+  a { color: var(--blue); }
+  .skip { position: absolute; left: -999px; }
+  .skip:focus { left: 16px; top: 8px; background: var(--card); padding: 8px 12px; z-index: 10; }
+  :focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+  header.top { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; }
+  .logos { display: flex; gap: 12px; }
+  .ph { border: 1px dashed #9aa6b2; color: var(--muted); border-radius: 6px; padding: 3px 10px; font-size: 13px; }
+  .rationale-toggle { font: inherit; font-size: 14px; font-weight: 600; background: var(--navy); color: var(--on-navy); border: 0; border-radius: 99px; padding: 6px 14px; cursor: pointer; }
+
+  .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr) 280px; gap: 16px; padding: 0 16px 24px; max-width: 1400px; margin: 0 auto; }
+  @media (max-width: 1100px) { .layout { grid-template-columns: 220px minmax(0, 1fr); } .right { grid-column: 2; } }
+  @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } .right, nav.side { grid-column: auto; } nav.side { order: 2; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+
+  nav.side h2 { font-size: 19px; margin: 6px 0 14px; line-height: 1.25; }
+  nav.side ul { list-style: none; margin: 0; padding: 0; }
+  nav.side li a { display: block; padding: 6px 10px; border-radius: 8px; color: var(--ink); text-decoration: none; font-size: 15px; }
+  nav.side li a[aria-current] { background: var(--blue-soft); font-weight: 700; }
+  nav.side .sec { font-weight: 700; font-size: 15px; margin: 14px 0 6px; padding: 0 10px; }
+
+  main h1 { font-size: 28px; margin: 0 0 4px; line-height: 1.2; }
+  .meta { color: var(--muted); font-size: 14px; margin: 0 0 16px; }
+  main h2 { font-size: 20px; margin: 28px 0 10px; }
+  main h3 { font-size: 16px; margin: 0 0 6px; }
+
+  .video { position: relative; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; background: linear-gradient(135deg, #002a5c, #003f8f 55%, #0056d2); color: #fff; display: grid; place-items: center; }
+  .video .play { width: 72px; height: 72px; border-radius: 50%; background: rgba(255,255,255,.92); display: grid; place-items: center; border: 0; cursor: pointer; }
+  .video .play svg { margin-left: 5px; }
+  .video .cap { position: absolute; left: 16px; bottom: 14px; right: 16px; display: flex; justify-content: space-between; align-items: end; gap: 8px; font-size: 14px; }
+  .video .who { font-weight: 700; font-size: 17px; }
+  .pill { background: rgba(0,0,0,.45); border-radius: 6px; padding: 2px 8px; font-size: 13px; font-weight: 600; }
+  .vtools { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 10px 0 0; font-size: 14px; }
+
+  details { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 10px 0; }
+  details summary { cursor: pointer; font-weight: 600; }
+  details p { margin: 8px 0; }
+
+  .why { background: var(--blue-soft); border-radius: 12px; padding: 16px 18px; }
+  .why p { margin: 0; }
+  .why .big { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+
+  ol.obj { margin: 0; padding-left: 22px; }
+  ol.obj li { margin: 6px 0; }
+  .verb { font-weight: 700; }
+
+  .items { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .items li { display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--line); }
+  .items li:first-child { border-top: 0; }
+  .items .ic { width: 22px; height: 22px; color: var(--muted); }
+  .items .t { font-weight: 600; }
+  .items .s { color: var(--muted); font-size: 14px; }
+  .items .min { color: var(--muted); font-size: 14px; white-space: nowrap; }
+  .items li.new { background: var(--blue-soft); }
+  .badge { display: inline-block; font-size: 11px; font-weight: 700; background: var(--blue); color: var(--on-accent); border-radius: 99px; padding: 1px 8px; margin-left: 6px; vertical-align: 2px; }
+  .badge.g { background: var(--navy); color: var(--on-navy); }
+  .phase { font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); background: var(--bg); padding: 6px 14px !important; display: block !important; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+  .box { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .box ul { margin: 6px 0 0; padding-left: 20px; }
+  .box li { margin: 4px 0; }
+
+  form.plan label { display: block; font-weight: 600; margin: 12px 0 4px; }
+  form.plan .hint { font-weight: 400; color: var(--muted); font-size: 14px; }
+  form.plan textarea, form.plan select { width: 100%; font: inherit; font-size: 15px; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+  form.plan textarea { min-height: 60px; resize: vertical; }
+  .saved { color: var(--blue); font-size: 14px; font-weight: 600; min-height: 1.4em; margin-top: 6px; }
+
+  .right .card + .card { margin-top: 16px; }
+  .right h2 { font-size: 18px; margin: 0 0 8px; }
+  .bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; margin: 8px 0; }
+  .bar span { display: block; height: 100%; width: 0; background: var(--blue); border-radius: 99px; }
+  .right p { margin: 4px 0; font-size: 14px; color: var(--muted); }
+  .right ul { margin: 6px 0 0; padding-left: 18px; font-size: 14px; }
+  .right li { margin: 4px 0; }
+
+  .btn { display: inline-block; font: inherit; font-weight: 600; font-size: 15px; background: var(--blue); color: var(--on-accent); border: 0; border-radius: 8px; padding: 9px 16px; cursor: pointer; text-decoration: none; }
+  .btn.ghost { background: transparent; color: var(--blue); border: 1px solid var(--blue); }
+  .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
+
+  /* Design rationale callouts (gallery-walk / portfolio layer) */
+  .note { display: none; background: var(--navy); color: var(--on-navy); border-left: 5px solid #4d8dff; border-radius: 10px; padding: 8px 12px; font-size: 14px; font-weight: 600; margin: 10px 0; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+  .note b { font-weight: 800; }
+  .note .src { display: block; color: #c9dcff; font-weight: 500; font-size: 13px; margin-top: 2px; }
+  body.show-notes .note { display: block; }
+
+  footer.band { background: var(--navy); color: var(--on-navy); padding: 14px 16px; font-size: 15px; }
+  footer.band .wrap { max-width: 1400px; margin: 0 auto; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  footer.band .k { background: #ffffff; color: #002a5c; font-weight: 700; border-radius: 99px; padding: 2px 12px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to module content</a>
+
+<header class="top">
+  <div class="logos"><span class="ph">Platform logo</span><span class="ph">University logo</span></div>
+  <button class="rationale-toggle" id="toggle" aria-pressed="false">Show design rationale</button>
+</header>
+
+<div class="layout">
+  <nav class="side card" aria-label="Course navigation">
+    <span class="ph">Logo</span>
+    <h2>Foundations of Implementation Science</h2>
+    <div class="sec">Course materials</div>
+    <ul>
+      <li><a href="#">Module 1: What is implementation science?</a></li>
+      <li><a href="#" aria-current="page">Module 2: Choose your EBI</a></li>
+      <li><a href="#">Module 3: Understand your context</a></li>
+      <li><a href="#">Module 4: Choose implementation strategies</a></li>
+      <li><a href="#">Module 5: Decide how to measure success</a></li>
+      <li><a href="#">Module 6: Build your logic model</a></li>
+      <li><a href="#">Module 7: Engage partners</a></li>
+      <li><a href="#">Module 8: Capstone</a></li>
+    </ul>
+    <div class="sec">Course</div>
+    <ul>
+      <li><a href="#">Grades</a></li>
+      <li><a href="#">Discussions</a></li>
+      <li><a href="#">Resource hub (terms and links)</a></li>
+      <li><a href="#">Course info and AI policy</a></li>
+    </ul>
+  </nav>
+
+  <main id="main" class="card">
+    <p class="meta">Module 2 of 8 · About 2 hr 30 min in total · Builds piece 2 of your project</p>
+    <h1>Choose your EBI: module overview</h1>
+    <p>In this module you will find, propose and check one evidence-based intervention (EBI) for a health problem in your own setting. It becomes the foundation of the logic model you build across the course.</p>
+
+    <!-- Welcome video -->
+    <h2 id="h-welcome">Welcome from your instructor</h2>
+    <div class="video" role="img" aria-label="Video placeholder: instructor welcome to Module 2, 2 minutes, captions available">
+      <button class="play" aria-label="Play welcome video (2 minutes)">
+        <svg width="28" height="32" viewBox="0 0 28 32" aria-hidden="true"><path d="M0 0 L28 16 L0 32 Z" fill="#002a5c"/></svg>
+      </button>
+      <div class="cap"><span><span class="who">Welcome to Module 2</span><br>Course instructor · talking head with slides</span><span class="pill">CC · 2:00</span></div>
+    </div>
+    <div class="vtools">
+      <a href="#">Download video (240p, 1080p)</a>
+      <a href="#">Download transcript (PDF)</a>
+      <a href="#">Download slides (PDF)</a>
+    </div>
+    <details>
+      <summary>Read the transcript</summary>
+      <p>Hi, and welcome to Module 2. Last module you wrote your own definitions. This week you make your first real decision: which intervention you want to bring into your setting.</p>
+      <p>I'll be honest: this is the step where most of my students stumble. The first EBI I ever chose for a project turned out to be a strategy, not an intervention at all. That's normal, and it's why this module gives you a way to check your choice before anyone grades it.</p>
+      <p>You'll fill in a short template, then ask an AI reviewer to challenge it. Expect it to be tough. Most first choices come back as "workable with changes." That isn't a judgment of you. It's the start of a better project.</p>
+      <p>Before you start, take two minutes to plan your week with the questions below. See you in the discussion forum.</p>
+    </details>
+    <div class="note">Teaching + emotional presence: a short, imperfect, personal welcome. The story about the instructor's own mistake makes a hard verdict feel normal.<span class="src">COI checklist ("tell stories," "make mistakes"); Guo et al. 2014: ≤6 min, personal feel beats studio polish</span></div>
+
+    <!-- Course why -->
+    <h2>Why this module matters</h2>
+    <div class="why">
+      <p class="big">Interventions that work often take many years to reach the people who need them.</p>
+      <p>Choosing the right EBI is the first step in closing that gap where you work. A strong choice makes every later piece of your project easier. A weak one is hard to fix later.</p>
+    </div>
+    <div class="note">Existential presence: a "course why" that connects the module to real people and real stakes.<span class="src">COI checklist 2022 (existential presence)</span></div>
+
+    <!-- Objectives -->
+    <h2>What you will be able to do</h2>
+    <ol class="obj">
+      <li><span class="verb">Propose</span> an evidence-based intervention for a health problem in your own setting, using an 8-part template.</li>
+      <li><span class="verb">Appraise</span> the evidence behind it: its strength, its fit with your setting, and where it sits on the research-to-practice "subway line."</li>
+      <li><span class="verb">Use an AI reviewer critically</span>: tell apart what came from your text, what is general knowledge, and what you must verify yourself.</li>
+      <li><span class="verb">Revise and justify</span> your choice in writing, and give useful feedback on a peer's reasoning.</li>
+    </ol>
+    <div class="note">Objectives written as skills a learner can name on a resume. Each one maps to one graded or practice item below.<span class="src">Krauss 2017 (competency-based education); Johns Hopkins benchmark ("goals as skills")</span></div>
+
+    <!-- Items -->
+    <h2>What's in this module</h2>
+    <ul class="items" aria-label="Module 2 items">
+      <li class="phase">Learn</li>
+      <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 9 L15 12 L10 15 Z" fill="currentColor"/></svg>
+        <div><div class="t">What counts as an EBI?</div><div class="s">Video</div></div><span class="min">5 min</span></li>
+      <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="3.5" width="15" height="17" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.6"/></svg>
+        <div><div class="t">Three steps for finding EBIs</div><div class="s">Reading with diagram</div></div><span class="min">8 min</span></li>
+      <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 9 L15 12 L10 15 Z" fill="currentColor"/></svg>
+        <div><div class="t">Judging whether an EBI fits your setting</div><div class="s">Video</div></div><span class="min">6 min</span></li>
+      <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="3.5" width="15" height="17" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.6"/></svg>
+        <div><div class="t">The translational research "subway line"</div><div class="s">Reading with diagram</div></div><span class="min">10 min</span></li>
+      <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 9 L15 12 L10 15 Z" fill="currentColor"/></svg>
+        <div><div class="t">Guest expert: choosing EBIs in practice</div><div class="s">2 short clips from a guest talk, each with a question to think about</div></div><span class="min">10 min</span></li>
+      <li class="phase">Do</li>
+      <li class="new"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="3.5" width="15" height="17" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.6"/></svg>
+        <div><div class="t">Propose your EBI <span class="badge">NEW</span></div><div class="s">Practice assignment · 8 boxes, each with an example</div></div><span class="min">20 min</span></li>
+      <li class="new"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 l2.2 5.3 5.8.5-4.4 3.8 1.3 5.6L12 15.3 7.1 18.2l1.3-5.6L4 8.8l5.8-.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        <div><div class="t">Check your EBI choice with AI <span class="badge">NEW</span></div><div class="s">Ungraded tool · or use the no-AI self-check</div></div><span class="min">15 min</span></li>
+      <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        <div><div class="t">Discussion: share your setting and your EBI</div><div class="s">Reply to two peers working on a similar problem</div></div><span class="min">15 min</span></li>
+      <li class="phase">Show</li>
+      <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 12.5l2.6 2.6L16 9.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        <div><div class="t">Module 2 quiz <span class="badge g">Graded</span></div><div class="s">EBI vs strategy vs guideline · retake anytime</div></div><span class="min">10 min</span></li>
+      <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="3.2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="16" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6M14 15.2c2.6-.4 5 .9 5.6 3.8" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        <div><div class="t">Submit your EBI selection <span class="badge g">Peer-graded</span></div><div class="s">Final choice + AI-check reflection log</div></div><span class="min">60 min</span></li>
+    </ul>
+    <div class="note">Videos re-cut to 5–6 min (the Canvas and Johns Hopkins versions run 12–23 min). Learn → Do → Show follows the project task, not the calendar week.<span class="src">Guo et al. 2014 (engagement drops after ~6 min); Bates ch. 8 (choose the medium for the learning need); Collins &amp; Kapur (sequencing)</span></div>
+    <div class="note">Social presence: a discussion between learners working on similar problems, not one huge forum. A no-AI option keeps the task fair for learners without an AI account.<span class="src">UIS (dialogue collapses in very large groups); Gronseth et al. (UDL); COI social presence</span></div>
+
+    <!-- How it fits -->
+    <h2>How the project pieces connect</h2>
+    <div class="grid2">
+      <div class="box">
+        <h3>How you'll be assessed</h3>
+        <ul>
+          <li><b>Quiz:</b> auto-graded, unlimited attempts.</li>
+          <li><b>EBI selection:</b> graded by 3 peers using a rubric. They grade <em>your reasoning</em>: what you verified and what you changed.</li>
+          <li>The AI's answer is <b>never graded</b>. Text you submit must be your own.</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>Where this goes next</h3>
+        <ul>
+          <li>Your EBI carries into <b>Module 3</b>, where you list barriers in your setting.</li>
+          <li>It becomes the left side of your <b>logic model</b> in Module 6.</li>
+          <li>You'll revisit and revise it in the <b>Module 8 capstone</b>.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note">Every module adds one piece of a project the learner builds about their own workplace. AI is a sparring partner; the learner's own judgment is what gets graded.<span class="src">Falbel (constructionism); Watkins &amp; Marsick 2020; Deloitte Human Capital Trends 2026</span></div>
+
+    <!-- Plan ahead -->
+    <h2 id="h-plan">Plan your week (2 minutes)</h2>
+    <p>Learners who plan ahead finish more often. Your answers are saved only in this browser. You'll see them again at the end of the module, when you look back on how the plan went.</p>
+    <form class="plan" id="plan" aria-labelledby="h-plan">
+      <label for="p-when">When will you work on this module? <span class="hint">e.g. two 45-minute blocks on Tuesday and Saturday mornings</span></label>
+      <textarea id="p-when"></textarea>
+      <label for="p-search">How will you find 3 to 5 articles about your EBI? <span class="hint">databases, a librarian, colleagues…</span></label>
+      <textarea id="p-search"></textarea>
+      <label for="p-hard">What part do you expect to be hardest, and what will you do if you get stuck?</label>
+      <textarea id="p-hard"></textarea>
+      <div class="saved" id="saved" role="status" aria-live="polite"></div>
+    </form>
+    <div class="note">Regulatory presence: plan before the task, then look back afterwards ("Did your plan work?"). Builds self-regulation for learners who need more structure.<span class="src">COI checklist 2022 (regulatory presence); UIS (dependent learners); Rigolizzo 2012 (triggers and reflection)</span></div>
+
+    <div class="actions">
+      <a class="btn ghost" href="#">Go to Module 1</a>
+      <a class="btn" href="#">Start: What counts as an EBI? →</a>
+    </div>
+  </main>
+
+  <aside class="right" aria-label="Progress and help">
+    <div class="card">
+      <h2>Module 2 progress</h2>
+      <p id="prog-text">0 of 10 items completed</p>
+      <div class="bar" aria-hidden="true"><span id="prog"></span></div>
+      <p>Next up: What counts as an EBI?</p>
+    </div>
+    <div class="card">
+      <h2>Getting help</h2>
+      <ul>
+        <li><a href="#">Ask in the Module 2 forum</a>: mentors reply within 48 hours</li>
+        <li><a href="#">Resource hub</a>: definitions, the ERIC list, database links</li>
+        <li><a href="#">How to search PubMed (5-min guide)</a></li>
+        <li><a href="#">Accessibility and download options</a></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Ways to learn this module</h2>
+      <ul>
+        <li>Every video has <b>captions</b>, a <b>transcript</b> and a <b>slide PDF</b>.</li>
+        <li>Every diagram has a <b>text description</b>.</li>
+        <li>Low-bandwidth: download the 240p video or read the transcript instead.</li>
+      </ul>
+    </div>
+    <div class="note">Accessibility designed in from the start, not retrofitted: captions, transcripts, alt text, low-bandwidth options. The page also works by keyboard (skip link, visible focus).<span class="src">Instructure "Accessibility in Online Course Design" (POUR, 7 pillars); UIS (technology access)</span></div>
+  </aside>
+</div>
+
+<footer class="band"><div class="wrap"><span class="k">Prototype</span><span>Module 2 overview: the first page learners see. Toggle "Show design rationale" to see the T127 reading behind each design choice.</span></div></footer>
+
+<script>
+  const qs = new URLSearchParams(location.search);
+  if (qs.has("light")) document.documentElement.dataset.theme = "light";
+  const toggle = document.getElementById('toggle');
+  toggle.addEventListener('click', () => {
+    const on = document.body.classList.toggle('show-notes');
+    toggle.setAttribute('aria-pressed', on);
+    toggle.textContent = on ? 'Hide design rationale' : 'Show design rationale';
+  });
+  if (new URLSearchParams(location.search).has('notes')) toggle.click();
+
+  const ids = ['p-when', 'p-search', 'p-hard'];
+  const saved = document.getElementById('saved');
+  let t;
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    try { el.value = localStorage.getItem('m2plan-' + id) || ''; } catch (e) {}
+    el.addEventListener('input', () => {
+      try { localStorage.setItem('m2plan-' + id, el.value); } catch (e) {}
+      clearTimeout(t);
+      t = setTimeout(() => { saved.textContent = 'Saved'; setTimeout(() => saved.textContent = '', 1500); }, 400);
+    });
+  });
+</script>
+</body>
+</html>

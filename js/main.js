@@ -78,7 +78,7 @@ if (tocLinks.length) {
 }
 
 // Lightbox for screenshots and slides
-const zoomables = $$('.shots img, .slides img, .workbook img, .project-photo > .wrap > img, .beyond-grid img');
+const zoomables = $$('.shots img, .slides img, .workbook img, .project-photo > .wrap > img, .beyond-grid img, img.zoom');
 if (zoomables.length) {
   const lb = document.createElement('div'); lb.className = 'lb';
   lb.innerHTML = '<button class="lb-x" aria-label="Close">×</button><img alt="">';

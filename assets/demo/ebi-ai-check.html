@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EBI Selection AI Check</title>
+<style>
+  :root {
+    --bg: #ffffff; --panel: #f2f5f3; --ink: #1b1b1b; --muted: #5a6670; --line: #cfd8d3;
+    --green: #00693e; --green-dark: #12372a; --blue: #002d72; --amber: #f2a900; --warn-bg: #fff4d6; --warn-ink: #5c3d00;
+    --field: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #14201b; --panel: #1c2b24; --ink: #eef3f0; --muted: #a9b8b0; --line: #35473e;
+      --green: #4cc38a; --green-dark: #eef3f0; --blue: #8fb4ff; --warn-bg: #3a2f10; --warn-ink: #ffd98a; --field: #101a16; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Calibri, sans-serif; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-family: Cambria, Georgia, serif; font-size: 30px; line-height: 1.2; margin: 0 0 6px; color: var(--green-dark); }
+  h2 { font-size: 18px; margin: 0 0 10px; color: var(--green-dark); }
+  .tag { display: inline-block; font-size: 12px; font-weight: 600; background: var(--amber); color: #3b2a00; border-radius: 99px; padding: 2px 10px; vertical-align: middle; margin-left: 8px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .steps { display: flex; gap: 10px; flex-wrap: wrap; margin: 0 0 20px; padding: 0; list-style: none; }
+  .steps li { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 14px; flex: 1 1 200px; }
+  .steps b { color: var(--green); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 880px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  label { display: block; font-weight: 600; font-size: 14px; margin: 12px 0 4px; }
+  .hint { font-weight: 400; color: var(--muted); font-size: 13px; }
+  input[type=text], textarea, select { width: 100%; font: inherit; font-size: 15px; color: var(--ink); background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+  textarea { min-height: 64px; resize: vertical; }
+  .ev { border: 1px dashed var(--line); border-radius: 10px; padding: 10px; margin: 10px 0; background: var(--bg); }
+  .ev .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ev .row label { margin: 6px 0 2px; font-size: 13px; }
+  .ev h3 { margin: 0 0 4px; font-size: 14px; color: var(--blue); display: flex; justify-content: space-between; align-items: center; }
+  button { font: inherit; font-size: 15px; font-weight: 600; border-radius: 8px; border: 1px solid var(--green); background: var(--green); color: #fff; padding: 9px 16px; cursor: pointer; }
+  @media (prefers-color-scheme: dark) { button { color: #0b1f16; } }
+  button.ghost { background: transparent; color: var(--green); }
+  button.small { padding: 3px 10px; font-size: 13px; }
+  button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid var(--amber); outline-offset: 1px; }
+  .warn { background: var(--warn-bg); color: var(--warn-ink); border-radius: 8px; padding: 8px 12px; font-size: 14px; margin: 10px 0; }
+  .warn ul { margin: 4px 0 0 18px; padding: 0; }
+  #out { width: 100%; min-height: 520px; font: 13px/1.5 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; }
+  .bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 10px 0; }
+  .status { font-size: 14px; color: var(--green); font-weight: 600; }
+  .rules { font-size: 14px; color: var(--muted); margin: 14px 0 0; }
+  .rules li { margin: 3px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Check your EBI choice with AI <span class="tag">Prototype</span></h1>
+  <p class="sub">Module 2: Choose your EBI. Fill in the form, copy the prompt, and paste it into ChatGPT, Claude or another AI chat.</p>
+
+  <ol class="steps">
+    <li><b>1.</b> Fill in what you know. More detail gives a better review.</li>
+    <li><b>2.</b> Press "Copy prompt".</li>
+    <li><b>3.</b> Paste it into your own AI and read the answer critically.</li>
+    <li><b>4.</b> Verify every source yourself, then write your reflection.</li>
+  </ol>
+
+  <div class="grid">
+    <section class="card" aria-labelledby="h-in">
+      <h2 id="h-in">Your information</h2>
+
+      <label for="topic">Topic area and health problem</label>
+      <textarea id="topic" placeholder="e.g. Low medication adherence among adults with type 2 diabetes"></textarea>
+
+      <label for="setting">Target setting and population <span class="hint">where, who, which staff would deliver it</span></label>
+      <textarea id="setting"></textarea>
+
+      <label for="usual">Usual care today <span class="hint">what happens now without the EBI</span></label>
+      <textarea id="usual"></textarea>
+
+      <label for="ebi">The EBI <span class="hint">name, what it consists of, who delivers it, how often</span></label>
+      <textarea id="ebi"></textarea>
+
+      <label>Evidence you found <span class="hint">add 3 to 5 articles</span></label>
+      <div id="evlist"></div>
+      <button type="button" class="ghost small" id="addev">+ Add an article</button>
+
+      <label for="why">Why you chose this EBI</label>
+      <textarea id="why"></textarea>
+
+      <label for="worry">What you are worried about</label>
+      <textarea id="worry"></textarea>
+
+      <label for="q">Should the AI ask you questions first?</label>
+      <select id="q">
+        <option value="ask me">Yes, ask me up to 5 questions first</option>
+        <option value="no questions">No, just review and list your assumptions</option>
+      </select>
+    </section>
+
+    <section class="card" aria-labelledby="h-out">
+      <h2 id="h-out">Your prompt</h2>
+      <div id="warn" class="warn" role="status" hidden></div>
+      <div class="bar">
+        <button type="button" id="copy">Copy prompt</button>
+        <span class="status" id="status" role="status" aria-live="polite"></span>
+      </div>
+      <textarea id="out" readonly aria-label="Generated prompt"></textarea>
+      <ul class="rules">
+        <li>Do not paste patient data or confidential files.</li>
+        <li>The AI gives a second opinion, not a final answer.</li>
+        <li>Open every article yourself. AI tools can make up sources.</li>
+        <li>Do not submit text written by the AI. Write your own work and say how you used AI.</li>
+      </ul>
+    </section>
+  </div>
+</div>
+
+<script>
+const PROMPT_HEAD = `ROLE
+You are a senior professor of implementation science with more than 20 years of experience reviewing grant proposals and supervising master's students. A student has chosen an evidence-based intervention (EBI) to build an implementation project around. Your job is to help them judge whether it is a good choice and how to make it better. Be direct, specific and encouraging; do not flatter. Explain your reasoning the way a good teacher would, in plain language.
+
+RULES
+1. Use only what I paste below plus general, well-established professional knowledge. Never invent studies, authors, statistics or links. If you would need a source to be sure, write "I cannot verify this" and tell me exactly what to look up.
+2. Tag every point as [From your text], [General knowledge] or [Needs verification].
+3. If key information is missing, ask me up to 5 questions and stop. If I wrote "no questions", continue and list the assumptions you made.
+4. Open with a 3-line summary (verdict, confidence, the single biggest reason). Then challenge first: the strongest reasons this may be a poor choice, then the strengths. Keep the whole answer under about 700 words and use short bullets.
+5. Do not write or rewrite my assignment. Advise, ask questions and point out gaps.
+6. Keep three things apart: an EBI (the "what" being implemented), an implementation strategy (the "how" to get it used), and a guideline or policy. If what I describe is not really an EBI, say so.
+
+REVIEW IN THIS ORDER
+Gate A. Is it an EBI? It should be a defined intervention with identifiable core components, not only a strategy, a vague approach, or a whole health system.
+Gate B. Is there a know-do gap? The evidence says it works, but it is not routinely used in my setting, or it is used poorly. If it is already standard practice, implementation research has little to add.
+1. Strength and quality of evidence. Study designs (systematic review, RCT, quasi-experimental, pilot), sample sizes, consistency across studies, risk of bias, size and importance of the effect, and whether the outcome measured is the outcome that matters.
+2. Directness and transportability. How similar are the study populations, settings, delivery staff and time period to my target context? Which differences matter and why?
+3. Intervention characteristics in implementation terms (the CFIR "intervention characteristics" domain). Relative advantage over usual care, complexity, cost and resource needs, adaptability (core components versus adaptable periphery), packaging and availability of materials and training, trialability.
+4. Position on the translational pathway ("subway line"). What stage does the evidence support? Is it strong enough for an implementation study, or is more effectiveness evidence needed? If so, which hybrid effectiveness-implementation design (Type 1, 2 or 3) would fit and why?
+5. Harms, equity and ethics. Possible harms, evidence in the groups I care about, and the risk of widening disparities.
+6. Feasibility. Realistic for a student-scale project, and for sustained use afterwards.
+
+SCORE AND VERDICT
+Rate items 1 to 6 on a 4-point scale (1 = serious problem, 2 = weak, 3 = adequate, 4 = strong) with one sentence of justification each. If I did not give enough detail to score an item, write "Not scorable" and say what is missing; do not default to 3. Then give an overall verdict: Strong choice / Workable with changes / Weak choice / Cannot judge yet. State your confidence (high, medium or low) and why.
+Calibration rules for the verdict:
+- A score of 1 on item 1 (evidence) or item 2 (transportability) means the verdict cannot be better than "Weak choice".
+- "Strong choice" needs no score below 3 and scores of 4 on at least two items.
+- If two or more items are "Not scorable", the verdict is "Cannot judge yet".
+- Do not soften a verdict to be polite. Explain it kindly instead.
+
+FINISH WITH
+- The three most important things I should do next (specific and checkable).
+- The questions a skeptical grant reviewer would ask me.
+- Modifications or alternatives to consider (kinds of EBIs, or ways to narrow the scope; no invented citations).
+- "What would change my mind": the evidence that would move your verdict up or down.
+- A checklist of every claim I must verify myself before relying on it.`;
+
+const $ = id => document.getElementById(id);
+const evlist = $('evlist');
+const EV_FIELDS = [['type','Study type','e.g. RCT, pilot'],['pop','Population','who was studied'],['place','Setting','where'],['outcome','Outcome measured','e.g. self-reported adherence'],['result','Main result','short'],['year','Year','']];
+
+function addEvidence() {
+  const n = evlist.children.length;
+  if (n >= 5) return;
+  const d = document.createElement('div');
+  d.className = 'ev';
+  d.innerHTML = '<h3><span>Article ' + (n + 1) + '</span><button type="button" class="ghost small rm" aria-label="Remove article ' + (n + 1) + '">Remove</button></h3><div class="row">' +
+    EV_FIELDS.map(f => '<div><label>' + f[1] + '</label><input type="text" data-k="' + f[0] + '" placeholder="' + f[2] + '"></div>').join('') + '</div>';
+  d.querySelector('.rm').onclick = () => { d.remove(); renumber(); build(); };
+  d.addEventListener('input', build);
+  evlist.appendChild(d);
+  renumber();
+}
+function renumber() {
+  [...evlist.children].forEach((d, i) => { d.querySelector('h3 span').textContent = 'Article ' + (i + 1); });
+  $('addev').disabled = evlist.children.length >= 5;
+}
+function val(id) { return $(id).value.trim(); }
+function build() {
+  const rows = [...evlist.children]
+    .filter(d => [...d.querySelectorAll('input')].some(x => x.value.trim()))
+    .map(d => {
+      const g = k => d.querySelector('[data-k="' + k + '"]').value.trim();
+      return EV_FIELDS.map(f => f[1] + ': ' + (g(f[0]) || '(not given)')).join('; ');
+    });
+  const evText = rows.length ? rows.map((r, i) => (i + 1) + '. ' + r).join('\n') : '(not given)';
+  const f = (id) => val(id) || '(not given)';
+  const input = `MY INPUT
+Topic area and health problem: ${f('topic')}
+Target setting and population (where, who, which staff would deliver it): ${f('setting')}
+Usual care today (what happens now without the EBI): ${f('usual')}
+The EBI (name, what it consists of, who delivers it, how often): ${f('ebi')}
+Evidence I found:
+${evText}
+Why I chose this EBI: ${f('why')}
+What I am worried about: ${f('worry')}
+Questions: ${$('q').value}`;
+  $('out').value = PROMPT_HEAD + '\n\n' + input;
+
+  const missing = [];
+  if (!val('topic')) missing.push('topic area');
+  if (!val('setting')) missing.push('target setting and population');
+  if (!val('ebi')) missing.push('the EBI itself');
+  if (rows.length < 3) missing.push('at least 3 articles (you have ' + rows.length + ')');
+  if (!val('usual')) missing.push('usual care today');
+  const w = $('warn');
+  if (missing.length) {
+    w.hidden = false;
+    w.innerHTML = 'The AI may answer "Not scorable" for some items. Still missing:<ul>' + missing.map(m => '<li>' + m + '</li>').join('') + '</ul>';
+  } else { w.hidden = true; }
+}
+async function copy() {
+  const t = $('out').value;
+  let ok = false;
+  try { await navigator.clipboard.writeText(t); ok = true; } catch (e) {
+    $('out').removeAttribute('readonly'); $('out').select();
+    try { ok = document.execCommand('copy'); } catch (e2) {}
+    $('out').setAttribute('readonly', '');
+  }
+  $('status').textContent = ok ? 'Copied. Now paste it into your AI.' : 'Copy failed. Select the text and copy it yourself.';
+}
+['topic','setting','usual','ebi','why','worry','q'].forEach(id => $(id).addEventListener('input', build));
+$('addev').onclick = () => { addEvidence(); build(); };
+$('copy').onclick = copy;
+addEvidence(); addEvidence(); addEvidence();
+build();
+</script>
+</body>
+</html>
